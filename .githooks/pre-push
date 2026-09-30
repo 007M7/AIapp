@@ -1,0 +1,17 @@
+#!/bin/sh
+# 推送前:全检查(本地 CI 的完整闸门)
+# 1) 重跑原型生成器(node prototype/src/build-app.mjs),验证"生成器 → 产物"这条链没坏
+# 2) 跑全部检查
+# 生成器会覆写 prototype/ 下的页面;若产物与提交内容不一致,请一并提交。
+# 临时跳过:git push --no-verify
+set -e
+ROOT="$(git rev-parse --show-toplevel)"
+echo "[pre-push] 1/2 重跑原型生成器 …"
+( cd "$ROOT" && node prototype/src/build-app.mjs )
+echo "[pre-push] 2/2 运行本地检查 …"
+node "$ROOT/scripts/check.mjs"
+if ! git -C "$ROOT" diff --quiet -- prototype; then
+  echo "[pre-push] ⚠️ 重新生成后 prototype/ 有改动 —— 请把产物一并提交后再推送"
+  git -C "$ROOT" diff --stat -- prototype
+  exit 1
+fi

@@ -1,0 +1,1724 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>AI 手办 · MVP1 交互 demo</title><style>
+*{box-sizing:border-box;-webkit-font-smoothing:antialiased;margin:0;padding:0}
+html,body{font-family:"Microsoft YaHei UI","Microsoft YaHei","PingFang SC",system-ui,-apple-system,"Segoe UI",sans-serif;color:#1B2440}
+body{background:#EAE8E2;padding:0;display:flex;flex-direction:column;align-items:center;gap:0}
+a{text-decoration:none;color:inherit}
+.phone{width:390px;min-height:844px;background:#F3F1EC;display:flex;flex-direction:column;position:relative;border-radius:0;overflow-x:hidden}
+.phone.frame{border-radius:26px;overflow:hidden;box-shadow:0 12px 40px rgba(27,36,64,.12);margin:22px auto}
+/* 独立页:不居中、不留白,保证截图与设计稿尺寸一致(390×900) */
+body.standalone{display:block;background:#F3F1EC}
+body.standalone .phone{margin:0;border-radius:0;box-shadow:none}
+.statusbar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px 0 26px;font-size:13px;font-weight:600;flex:none}
+.sb-right{display:flex;gap:5px;align-items:center}
+.sb-right i{display:block;background:#1B2440;border-radius:2px}
+.sig{width:15px;height:9px;clip-path:polygon(0 100%,20% 100%,20% 60%,0 60%,0 100%,30% 100%,30% 40%,50% 40%,50% 100%,60% 100%,60% 20%,80% 20%,80% 100%,100% 100%,100% 0,0 0)}
+.wifi{width:13px;height:10px;clip-path:polygon(50% 100%,0 35%,15% 22%,50% 62%,85% 22%,100% 35%)}
+.bat{width:20px;height:10px;border-radius:2.5px}
+.aibadge{display:flex;gap:6px;align-items:center;margin:0 16px 10px;padding:7px 10px;border-radius:9px;background:#EDF0F7;color:#5A6480;font-size:11px;line-height:1.3;flex:none}
+.aibadge .ico{flex:none}
+.content{flex:1;padding:0 16px 26px}
+.tabbar{height:62px;display:flex;background:rgba(255,255,255,.94);border-top:1px solid #E4E2D9;position:sticky;bottom:0}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#8B93AC;font-size:10.5px}
+.tab.on{color:#3E63B0;font-weight:600}
+.subheader{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 2px 0 4px;flex:none}
+.shtitle{font-size:12px;color:#8B93AC}
+.shright{font-size:12px;color:#8B93AC;min-width:26px;text-align:right}
+.back{display:flex;align-items:center;color:#1B2440}
+h1{font-size:22px;margin:2px 0 4px;letter-spacing:.2px}
+h2{font-size:15px;margin:0 0 10px;font-weight:600}
+.sub{font-size:12px;color:#8B93AC;margin:0 0 14px;line-height:1.5}
+.card{background:#FFFFFF;border-radius:16px;padding:16px;border:1px solid #E4E2D9}
+.card + .card{margin-top:12px}
+.hairline{height:1px;background:#E4E2D9;margin:14px 0}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rowc{display:flex;align-items:center;gap:10px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;background:#FFFFFF;border:1px solid #E4E2D9;font-size:12.5px;color:#45507B}
+.pill.on{background:#EAF0FA;border-color:#CBD8F0;color:#3E63B0;font-weight:600}
+.cap{font-size:11px;color:#8B93AC;letter-spacing:1.6px;text-transform:uppercase}
+.tiny{font-size:11px;color:#8B93AC;line-height:1.5}
+.rule{height:1px;background:#E4E2D9}
+.ico{display:block}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.grid2 > *{min-width:0}
+.avatar{border-radius:50%;overflow:hidden;background:linear-gradient(160deg,#EAF0FA,#C9DCF0)}
+.square{border-radius:12px;overflow:hidden;background:linear-gradient(160deg,#EAF0FA,#D2E0F5)}
+.square svg,.avatar svg{display:block}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:14px;font-size:14px;font-weight:600}
+.btn.pri{background:#26325F;color:#fff}
+.btn.ghost{background:#fff;border:1px solid #E4E2D9;color:#45507B}
+.list{display:flex;flex-direction:column}
+.list .li{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid #E4E2D9}
+.list .li:last-child{border-bottom:0}
+
+.phone .wrap { display: block; }
+</style></head><body>
+<div class="phone frame"><div class="statusbar"><span>9:41</span><span class="sb-right"><i class="sig"></i><i class="wifi"></i><i class="bat"></i></span></div><div id="app"></div></div>
+<template data-page="hand/today"><div class="aibadge"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12.4" cy="13" rx="7.2" ry="4.4" fill="currentColor" stroke="none"/><path d="M18.6 11.8c2-.8 3.6-2.8 4.2-4.8 1 3 .4 6.2-1.4 8.2 1 1.2 2.6 1.8 4 2.2-2.6 1.4-5.4 1-7.6-.8" fill="currentColor" stroke="none"/><circle cx="8.2" cy="11.4" r="0.9" fill="#fff" stroke="none"/></svg><span>本产品为人工智能合成语音,互动对象不是真人</span></div><main class="content">
+<div class="row" style="margin:2px 0 12px">
+  <div><h1>今天</h1><p class="sub" style="margin:0">小鲸 · 在桌上的第 47 天</p></div>
+  <span class="pill on"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19.6 14.2A8.4 8.4 0 1 1 9.8 4.4a6.6 6.6 0 0 0 9.8 9.8Z"/></svg>夜间静默</span>
+</div>
+<div class="card" style="padding:22px 16px;text-align:center">
+  <div style="width:96px;height:96px;margin:0 auto;border-radius:50%;background:radial-gradient(circle,rgba(62,99,176,.22) 0%,rgba(62,99,176,.1) 50%,transparent 72%);border:1px solid #D3E0F4;display:flex;align-items:center;justify-content:center"><div style="width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 32%,#BFD4F2,#3E63B0 72%);box-shadow:0 0 22px rgba(62,99,176,.5)"></div></div>
+  <div style="font-size:15.5px;font-weight:600;margin-top:16px">它在桌上</div>
+  <div class="tiny" style="margin-top:7px;line-height:1.7">按住头顶那颗按键,它就听你说;松手,它才开口<br>上次说话 · 今天 08:12</div>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="row"><div class="cap">今天的小物</div><span class="tiny">第 3 件 · 可收进收藏柜</span></div>
+  <div style="font-size:17px;font-weight:600;margin:9px 0 7px">一枚被浪磨圆的贝壳</div>
+  <div class="tiny" style="line-height:1.7">昨天你们聊到海边,它替你捡回来了。</div>
+  <div style="margin-top:12px;font-size:13.5px;line-height:1.9;color:#45507B">「下次,带你听这个声音。」<span class="tiny" style="margin-left:6px">—— 小鲸</span></div>
+  <div class="row" style="margin-top:13px"><span class="pill on"><svg class="ico" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.4l2.3 4.7 5.1.7-3.7 3.6.9 5.1-4.6-2.4-4.6 2.4.9-5.1L4.6 9.8l5.1-.7Z"/></svg>收进收藏柜</span><a class="tiny" href="#/archive/assets">收藏柜 ›</a></div>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="row"><div class="cap">今天的连载</div><span class="tiny">第 6 章 · 海里的灯塔</span></div>
+  <div class="tiny" style="margin-top:9px;line-height:1.7">它念一段,大约一分钟;听过的都留在「档案」里。</div>
+  <div class="row" style="margin-top:13px"><span class="pill on"><svg class="ico" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 13.4v-1.6a7.4 7.4 0 0 1 14.8 0v1.6"/><path d="M4.6 13.4h2.2c.6 0 1 .4 1 1v3.2c0 .6-.4 1-1 1H5.6c-.6 0-1-.4-1-1v-4.2Z"/><path d="M19.4 13.4h-2.2c-.6 0-1 .4-1 1v3.2c0 .6.4 1 1 1h1.2c.6 0 1-.4 1-1v-4.2Z"/></svg>继续听</span><a class="tiny" href="#/community/index">这周的更新 ›</a></div>
+</div>
+<div class="card" style="margin-top:12px">
+  <h2 style="margin-bottom:6px">最近的相处</h2>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">今天 08:12</span><span class="tiny">说了 4 分钟</span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">昨天 21:40</span><span class="tiny">它先开口,念了连载第 6 章</span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">9 月 27 日</span><span class="tiny">你告诉它出差的事</span></div>
+  <div class="tiny" style="margin-top:12px;text-align:center"><a href="#/archive/memory">全部记录在「档案」里 ›</a></div>
+</div></main><nav class="tabbar"><a class="tab on" href="#/hand/today"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4c2 0 3.4 1.5 3.4 3.4 0 1.6-.9 2.6-1.6 3.2h3.4c1 0 1.8.8 1.8 1.8v1.6H6.6v-1.6c0-1 .8-1.8 1.8-1.8h3.4c-.7-.6-1.6-1.6-1.6-3.2 0-1.9 1.4-3.4 3.4-3.4Z"/><path d="M5.4 15.6h13.2v3.2c0 .6-.5 1.1-1.1 1.1H6.5c-.6 0-1.1-.5-1.1-1.1v-3.2Z"/><path d="M3.8 20.4h16.4"/></svg><span>手办</span></a><a class="tab " href="#/archive/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.2c0-.9.7-1.6 1.6-1.6h3.1l1.5 1.9h7.2c.9 0 1.6.7 1.6 1.6v8.5c0 .9-.7 1.6-1.6 1.6H5.6c-.9 0-1.6-.7-1.6-1.6V7.2Z"/><path d="M4 11.2h16"/></svg><span>档案</span></a><a class="tab " href="#/community/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.4" cy="9.6" r="3"/><path d="M4.4 18.6c0-2.5 2.2-4.2 5-4.2s5 1.7 5 4.2"/><path d="M16 7.4c1.6.3 2.7 1.6 2.7 3.2 0 2-.9 3-2.2 3.6"/><path d="M17.2 14.7c1.9.4 3.2 1.7 3.2 3.9"/></svg><span>社区</span></a><a class="tab " href="#/store/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 8.4h12.8l1.1 10.2c.1.9-.6 1.7-1.6 1.7H6.1c-1 0-1.7-.8-1.6-1.7L5.6 8.4Z"/><path d="M9.1 10.2V7.6a2.9 2.9 0 0 1 5.8 0v2.6"/></svg><span>商店</span></a><a class="tab " href="#/me/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.6" r="3.4"/><path d="M5.6 19.4c0-3 2.9-5 6.4-5s6.4 2 6.4 5"/></svg><span>我的</span></a></nav></template>
+<template data-page="archive/index"><div class="aibadge"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12.4" cy="13" rx="7.2" ry="4.4" fill="currentColor" stroke="none"/><path d="M18.6 11.8c2-.8 3.6-2.8 4.2-4.8 1 3 .4 6.2-1.4 8.2 1 1.2 2.6 1.8 4 2.2-2.6 1.4-5.4 1-7.6-.8" fill="currentColor" stroke="none"/><circle cx="8.2" cy="11.4" r="0.9" fill="#fff" stroke="none"/></svg><span>本产品为人工智能合成语音,互动对象不是真人</span></div><main class="content">
+<div class="row" style="margin:2px 0 4px"><h1>我的角色</h1><span class="pill"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="12" r="2.4"/><circle cx="17" cy="6.6" r="2.4"/><circle cx="17" cy="17.4" r="2.4"/><path d="M9.2 10.8l5.6-3M9.2 13.2l5.6 3"/></svg>分享收藏柜</span></div>
+<p class="sub">3 位角色 · 2 件外观 · 5 件纪念物 · 1 枚编号 —— 这一格一格上的东西,只增不减</p>
+<div class="grid2">
+  <a class="card" style="padding:10px" href="#/archive/character">
+    <div class="square" style="aspect-ratio:1/1.06"><svg viewBox="20 4 280 302" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="角色立绘:深蓝女仆鲸娘">
+  <defs>
+    <linearGradient id="m-hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="0.55" stop-color="#4E6FB6"/><stop offset="1" stop-color="#9CD2EF"/>
+    </linearGradient>
+    <linearGradient id="m-iris" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BFE8F6"/><stop offset="0.55" stop-color="#4E7EC0"/><stop offset="1" stop-color="#22335E"/>
+    </linearGradient>
+    <linearGradient id="m-tail" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="1" stop-color="#7FB9DC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 鲸鱼尾(身后,向右扫:尾鳍明显探出裙外) -->
+  <path d="M214 380c40-16 72-46 92-88-4 42-12 82-30 118-14 26-32 40-52 44-11 2-19-7-17-18 2-22 3-40 7-56Z" fill="url(#m-tail)"/>
+  <path d="M256 452c10 4 19 11 26 20-12 7-28 7-40-2-9-7-11-17-7-26 5-9 14-9 21 8Z" fill="url(#m-tail)" opacity="0.92"/>
+
+  <!-- 后发(到腰的长卷发) -->
+  <path d="M160 64c-52 0-76 36-74 84 1 30-4 66-18 108-6 18-4 30 8 40 10 8 22 6 28-4 4-8 4-18 0-28-2 24 6 44 22 52 16 8 36 4 48-4 8-6 12-16 12-26-6-40-10-80-8-118 1-28-6-60-18-104Z" fill="url(#m-hair)"/>
+  <path d="M160 64c52 0 76 36 74 84-1 30 4 66 18 108 6 18 4 30-8 40-10 8-22 6-28-4-4-8-4-18 0-28 2 24-6 44-22 52-16 8-36 4-48-4-8-6-12-16-12-26 6-40 10-80 8-118-1-28 6-60 18-104Z" fill="url(#m-hair)"/>
+
+  <!-- 鲸鳍耳(两侧,向外后) -->
+  <path d="M106 120c-16-7-32-2-40 13 10 1 22 5 31 13 5-5 9-14 9-26Z" fill="#2A3663"/>
+  <path d="M104 124c-12-4-24 0-30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M214 120c16-7 32-2 40 13-10 1-22 5-31 13-5-5-9-14-9-26Z" fill="#2A3663"/>
+  <path d="M216 124c12-4 24 0 30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+
+  <!-- 女仆头饰 -->
+  <path d="M94 92c4-20 30-32 66-32s62 12 66 32c-8-8-20-10-20-10-6-6-16-8-20-8s-14 2-20 8c0 0-12 2-20 10Z" fill="#F7F9FC"/>
+  <path d="M94 92c6-6 12-8 18-8M226 92c-6-6-12-8-18-8M112 82c4-4 10-6 16-7M208 82c-4-4-10-6-16-7M132 76c4-3 8-4 12-4M188 76c-4-3-8-4-12-4" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+  <path d="M94 92c-4 8-2 16 2 22 6-6 8-14 6-22ZM226 92c4 8 2 16-2 22-6-6-8-14-6-22Z" fill="#F7F9FC"/>
+  <!-- 头饰侧蝴蝶结 -->
+  <g transform="translate(226,104)"><path d="M0 0l14-7c4 3 4 9 0 12L0 6c-4 3-4 7 0 10l14-7c4-3 4-9 0-12L0 0Z" fill="#7EC4E8"/><circle cx="0" cy="3" r="3" fill="#4E7EC0"/></g>
+
+  <!-- 头顶卷天线(鲸鱼喷水) -->
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#2A3663" stroke-width="11" stroke-linecap="round"/>
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#5B7FC4" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- 颈 -->
+  <rect x="150" y="160" width="20" height="26" rx="9" fill="#F0CBB4"/>
+  <!-- 肩袖与臂 -->
+  <path d="M114 178c-18 6-28 20-32 42-3 16 0 34 6 52l16-4c-4-16-4-32-2-46 2-12 6-22 12-30Z" fill="#2A3663"/>
+  <path d="M206 178c18 6 28 20 32 42 3 16 0 34-6 52l-16-4c4-16 4-32 2-46-2-12-6-22-12-30Z" fill="#2A3663"/>
+  <path d="M84 262c2 8 4 12 8 16 5 4 10 4 14 0l-4-16-16 4Z" fill="#F0CBB4"/>
+  <path d="M236 262c-2 8-4 12-8 16-5 4-10 4-14 0l4-16 16 4Z" fill="#F0CBB4"/>
+  <path d="M84 258c-2 4 0 10 4 12 4-4 8-8 10-12l-12-4Z" fill="#F7F9FC"/>
+  <path d="M236 258c2 4 0 10-4 12-4-4-8-8-10-12l12-4Z" fill="#F7F9FC"/>
+
+  <!-- 脸 -->
+  <path d="M160 78c-32 0-48 24-48 54 0 30 20 50 48 50s48-20 48-50c0-30-16-54-48-54Z" fill="#FBE4D6"/>
+  <!-- 刘海 -->
+  <path d="M160 74c-34 0-52 24-50 50 8-18 20-24 30-34 6 14 20 18 30 18 12 0 22-6 26-12-2-14-16-22-36-22Z" fill="url(#m-hair)"/>
+  <path d="M112 104c-2 6-3 12-3 18 2 8 6 10 10 12-1-6-2-12-1-18M208 104c2 6 3 12 3 18-2 8-6 10-10 12 1-6 2-12 1-18" fill="url(#m-hair)"/>
+
+  <!-- 眼 -->
+  <ellipse cx="138" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="138" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="141" cy="126" r="2.8" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="185" cy="126" r="2.8" fill="#FFFFFF"/>
+  <path d="M128 116c4-3 9-4 13-3M177 113c4-1 9 0 13 3" stroke="#22335E" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M130 112c3-2 8-2 11 0M179 112c3-2 8-2 11 0" stroke="#5B7FA8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="128" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <ellipse cx="192" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <path d="M154 152c2 4 10 4 12 0" stroke="#B4645C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+
+  <!-- 胸衣:白领 + 深蓝领结 + 金扣 -->
+  <path d="M160 168c-26 0-42 14-46 34 14 8 30 10 46 10s32-2 46-10c-4-20-20-34-46-34Z" fill="#F7F9FC"/>
+  <path d="M160 172c-24 0-38 12-42 28 14 8 28 10 42 10s28-2 42-10c-4-16-18-28-42-28Z" fill="#2A3663"/>
+  <path d="M146 180h-12c-3 0-4 4-2 6l12 8c3 1 6 0 7-3l-6-11ZM174 180h12c3 0 4 4 2 6l-12 8c-3 1-6 0-7-3l6-11Z" fill="#22335E"/>
+  <circle cx="160" cy="186" r="3.2" fill="#C9A227"/>
+  <circle cx="155" cy="196" r="2" fill="#C9A227"/><circle cx="165" cy="196" r="2" fill="#C9A227"/>
+  <circle cx="155" cy="204" r="2" fill="#C9A227"/><circle cx="165" cy="204" r="2" fill="#C9A227"/>
+
+  <!-- 裙:深蓝长裙 + 白围裙 + 鲸刺绣 + 金蝴蝶结 + 白蕾丝下摆 -->
+  <path d="M112 206c-4 26-12 90-18 150-4 40-8 76-6 100 4 24 30 36 72 36s68-12 72-36c2-24-2-60-6-100-6-60-14-124-18-150-16-8-32-10-48-10s-32 2-48 10Z" fill="#2A3663"/>
+  <!-- 裙底刺绣(金线) -->
+  <path d="M96 452c6-2 12 0 16 4-4 4-12 5-16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M224 452c-6-2-12 0-16 4 4 4 12 5 16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M110 470c8 6 18 8 30 8M210 470c-8 6-18 8-30 8" stroke="#C9A227" stroke-width="1.4" fill="none" opacity="0.8"/>
+  <!-- 白围裙(比裙窄,两侧露出深蓝裙) -->
+  <path d="M134 212c-3 20-6 70-7 120-1 44-1 78 4 100 4 12 14 16 29 16s25-4 29-16c5-22 5-56 4-100-1-50-4-100-7-120-9-5-17-7-26-7s-17 2-26 7Z" fill="#F7F9FC"/>
+  <path d="M116 412c-4 2-6 8-2 12 4-4 8-4 10 0 2-6 6-8 10-6 2 2 2 6 0 8-8 8-22 8-28-2-2-4 0-8 4-8" fill="#EDF0F6" opacity="0"/>
+  <path d="M120 420c6 6 20 8 40 8s34-2 40-8" stroke="#D9DEE8" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- 围裙鲸鱼刺绣 -->
+  <g transform="translate(160,330)"><ellipse cx="0" cy="4" rx="16" ry="9" fill="#2A3663"/><path d="M14 1c4-1 7-3 8-6 2 4 1 8-2 10 2 1 4 2 6 3-4 1-8 1-11-1Z" fill="#2A3663"/><circle cx="-7" cy="2" r="1.4" fill="#F7F9FC"/><path d="M-2 -6c1-3 3-5 6-6-1 3-1 6 1 8" fill="#4E7EC0"/></g>
+
+  <!-- 白蕾丝下摆 -->
+  <path d="M86 452c2 18 12 30 34 34-8 8-22 8-30-2-6-8-8-16-8-28ZM234 452c-2 18-12 30-34 34 8 8 22 8 30-2 6-8 8-16 8-28Z" fill="#F7F9FC"/>
+  <path d="M90 456c14 8 44 12 70 12s56-4 70-12" stroke="#F7F9FC" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M96 458c8 5 22 8 30 9M224 458c-8 5-22 8-30 9" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+
+  <!-- 袜与鞋 -->
+  <rect x="132" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <rect x="170" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <path d="M130 516c-4 2-6 6-6 10 0 8 6 14 14 14 7 0 13-4 13-10v-14h-21Z" fill="#F7F9FC"/>
+  <path d="M190 516c4 2 6 6 6 10 0 8-6 14-14 14-7 0-13-4-13-10v-14h21Z" fill="#F7F9FC"/>
+  <path d="M126 522c2-2 4-3 6-3M132 522v14M194 522c-2-2-4-3-6-3M188 522v14" stroke="#D9DEE8" stroke-width="1.6"/>
+  <path d="M122 538c0 6 8 10 16 10s16-4 16-10v-8H122v8Z" fill="#2A3663"/>
+  <path d="M182 538c0 6 8 10 16 10s16-4 16-10v-8h-16v8Z" fill="#2A3663"/>
+  <path d="M124 536h30M184 536h30" stroke="#22335E" stroke-width="3"/>
+  <path d="M138 540h4M194 540h4" stroke="#C9A227" stroke-width="2" stroke-linecap="round"/>
+  </svg></div>
+    <div style="font-size:14.5px;font-weight:600;margin:10px 0 3px">小鲸</div>
+    <div class="tiny">NO.0001 · 第 47 天</div>
+  </a>
+  <a class="card" style="padding:10px;background:#FAF8F4;border-style:dashed;border-color:#D8D4CC">
+    <div style="aspect-ratio:1/1.06;display:flex;align-items:center;justify-content:center;text-align:center;color:#8B93AC">
+      <div><div style="font-size:30px;line-height:1;font-weight:200">＋</div><div class="tiny" style="margin-top:10px;line-height:1.6">领养第一只手办<br>它会以一个新角色开始</div></div>
+    </div>
+  </a>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="row"><span style="font-size:13.5px;font-weight:600">资产账</span><a class="tiny" href="#/archive/assets">全部 ›</a></div>
+  <div class="rule" style="margin:12px 0"></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">角色 3 · 外观 2 · 纪念物 5 · 编号 1</span><span class="tiny"></span></div>
+  <div class="tiny" style="margin-top:10px;line-height:1.7">每件东西什么时候来的,都记在这里;任何一件都不会自己消失,也不会被我们收回。</div>
+</div></main><nav class="tabbar"><a class="tab " href="#/hand/today"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4c2 0 3.4 1.5 3.4 3.4 0 1.6-.9 2.6-1.6 3.2h3.4c1 0 1.8.8 1.8 1.8v1.6H6.6v-1.6c0-1 .8-1.8 1.8-1.8h3.4c-.7-.6-1.6-1.6-1.6-3.2 0-1.9 1.4-3.4 3.4-3.4Z"/><path d="M5.4 15.6h13.2v3.2c0 .6-.5 1.1-1.1 1.1H6.5c-.6 0-1.1-.5-1.1-1.1v-3.2Z"/><path d="M3.8 20.4h16.4"/></svg><span>手办</span></a><a class="tab on" href="#/archive/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.2c0-.9.7-1.6 1.6-1.6h3.1l1.5 1.9h7.2c.9 0 1.6.7 1.6 1.6v8.5c0 .9-.7 1.6-1.6 1.6H5.6c-.9 0-1.6-.7-1.6-1.6V7.2Z"/><path d="M4 11.2h16"/></svg><span>档案</span></a><a class="tab " href="#/community/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.4" cy="9.6" r="3"/><path d="M4.4 18.6c0-2.5 2.2-4.2 5-4.2s5 1.7 5 4.2"/><path d="M16 7.4c1.6.3 2.7 1.6 2.7 3.2 0 2-.9 3-2.2 3.6"/><path d="M17.2 14.7c1.9.4 3.2 1.7 3.2 3.9"/></svg><span>社区</span></a><a class="tab " href="#/store/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 8.4h12.8l1.1 10.2c.1.9-.6 1.7-1.6 1.7H6.1c-1 0-1.7-.8-1.6-1.7L5.6 8.4Z"/><path d="M9.1 10.2V7.6a2.9 2.9 0 0 1 5.8 0v2.6"/></svg><span>商店</span></a><a class="tab " href="#/me/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.6" r="3.4"/><path d="M5.6 19.4c0-3 2.9-5 6.4-5s6.4 2 6.4 5"/></svg><span>我的</span></a></nav></template>
+<template data-page="archive/character"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">档案 · 角色详情</span><span class="shright"></span></div><div class="aibadge"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12.4" cy="13" rx="7.2" ry="4.4" fill="currentColor" stroke="none"/><path d="M18.6 11.8c2-.8 3.6-2.8 4.2-4.8 1 3 .4 6.2-1.4 8.2 1 1.2 2.6 1.8 4 2.2-2.6 1.4-5.4 1-7.6-.8" fill="currentColor" stroke="none"/><circle cx="8.2" cy="11.4" r="0.9" fill="#fff" stroke="none"/></svg><span>本产品为人工智能合成语音,互动对象不是真人</span></div><main class="content">
+<div class="square" style="height:252px"><svg viewBox="60 2 200 192" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="角色立绘:深蓝女仆鲸娘">
+  <defs>
+    <linearGradient id="m-hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="0.55" stop-color="#4E6FB6"/><stop offset="1" stop-color="#9CD2EF"/>
+    </linearGradient>
+    <linearGradient id="m-iris" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BFE8F6"/><stop offset="0.55" stop-color="#4E7EC0"/><stop offset="1" stop-color="#22335E"/>
+    </linearGradient>
+    <linearGradient id="m-tail" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="1" stop-color="#7FB9DC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 鲸鱼尾(身后,向右扫:尾鳍明显探出裙外) -->
+  <path d="M214 380c40-16 72-46 92-88-4 42-12 82-30 118-14 26-32 40-52 44-11 2-19-7-17-18 2-22 3-40 7-56Z" fill="url(#m-tail)"/>
+  <path d="M256 452c10 4 19 11 26 20-12 7-28 7-40-2-9-7-11-17-7-26 5-9 14-9 21 8Z" fill="url(#m-tail)" opacity="0.92"/>
+
+  <!-- 后发(到腰的长卷发) -->
+  <path d="M160 64c-52 0-76 36-74 84 1 30-4 66-18 108-6 18-4 30 8 40 10 8 22 6 28-4 4-8 4-18 0-28-2 24 6 44 22 52 16 8 36 4 48-4 8-6 12-16 12-26-6-40-10-80-8-118 1-28-6-60-18-104Z" fill="url(#m-hair)"/>
+  <path d="M160 64c52 0 76 36 74 84-1 30 4 66 18 108 6 18 4 30-8 40-10 8-22 6-28-4-4-8-4-18 0-28 2 24-6 44-22 52-16 8-36 4-48-4-8-6-12-16-12-26 6-40 10-80 8-118-1-28 6-60 18-104Z" fill="url(#m-hair)"/>
+
+  <!-- 鲸鳍耳(两侧,向外后) -->
+  <path d="M106 120c-16-7-32-2-40 13 10 1 22 5 31 13 5-5 9-14 9-26Z" fill="#2A3663"/>
+  <path d="M104 124c-12-4-24 0-30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M214 120c16-7 32-2 40 13-10 1-22 5-31 13-5-5-9-14-9-26Z" fill="#2A3663"/>
+  <path d="M216 124c12-4 24 0 30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+
+  <!-- 女仆头饰 -->
+  <path d="M94 92c4-20 30-32 66-32s62 12 66 32c-8-8-20-10-20-10-6-6-16-8-20-8s-14 2-20 8c0 0-12 2-20 10Z" fill="#F7F9FC"/>
+  <path d="M94 92c6-6 12-8 18-8M226 92c-6-6-12-8-18-8M112 82c4-4 10-6 16-7M208 82c-4-4-10-6-16-7M132 76c4-3 8-4 12-4M188 76c-4-3-8-4-12-4" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+  <path d="M94 92c-4 8-2 16 2 22 6-6 8-14 6-22ZM226 92c4 8 2 16-2 22-6-6-8-14-6-22Z" fill="#F7F9FC"/>
+  <!-- 头饰侧蝴蝶结 -->
+  <g transform="translate(226,104)"><path d="M0 0l14-7c4 3 4 9 0 12L0 6c-4 3-4 7 0 10l14-7c4-3 4-9 0-12L0 0Z" fill="#7EC4E8"/><circle cx="0" cy="3" r="3" fill="#4E7EC0"/></g>
+
+  <!-- 头顶卷天线(鲸鱼喷水) -->
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#2A3663" stroke-width="11" stroke-linecap="round"/>
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#5B7FC4" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- 颈 -->
+  <rect x="150" y="160" width="20" height="26" rx="9" fill="#F0CBB4"/>
+  <!-- 肩袖与臂 -->
+  <path d="M114 178c-18 6-28 20-32 42-3 16 0 34 6 52l16-4c-4-16-4-32-2-46 2-12 6-22 12-30Z" fill="#2A3663"/>
+  <path d="M206 178c18 6 28 20 32 42 3 16 0 34-6 52l-16-4c4-16 4-32 2-46-2-12-6-22-12-30Z" fill="#2A3663"/>
+  <path d="M84 262c2 8 4 12 8 16 5 4 10 4 14 0l-4-16-16 4Z" fill="#F0CBB4"/>
+  <path d="M236 262c-2 8-4 12-8 16-5 4-10 4-14 0l4-16 16 4Z" fill="#F0CBB4"/>
+  <path d="M84 258c-2 4 0 10 4 12 4-4 8-8 10-12l-12-4Z" fill="#F7F9FC"/>
+  <path d="M236 258c2 4 0 10-4 12-4-4-8-8-10-12l12-4Z" fill="#F7F9FC"/>
+
+  <!-- 脸 -->
+  <path d="M160 78c-32 0-48 24-48 54 0 30 20 50 48 50s48-20 48-50c0-30-16-54-48-54Z" fill="#FBE4D6"/>
+  <!-- 刘海 -->
+  <path d="M160 74c-34 0-52 24-50 50 8-18 20-24 30-34 6 14 20 18 30 18 12 0 22-6 26-12-2-14-16-22-36-22Z" fill="url(#m-hair)"/>
+  <path d="M112 104c-2 6-3 12-3 18 2 8 6 10 10 12-1-6-2-12-1-18M208 104c2 6 3 12 3 18-2 8-6 10-10 12 1-6 2-12 1-18" fill="url(#m-hair)"/>
+
+  <!-- 眼 -->
+  <ellipse cx="138" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="138" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="141" cy="126" r="2.8" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="185" cy="126" r="2.8" fill="#FFFFFF"/>
+  <path d="M128 116c4-3 9-4 13-3M177 113c4-1 9 0 13 3" stroke="#22335E" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M130 112c3-2 8-2 11 0M179 112c3-2 8-2 11 0" stroke="#5B7FA8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="128" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <ellipse cx="192" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <path d="M154 152c2 4 10 4 12 0" stroke="#B4645C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+
+  <!-- 胸衣:白领 + 深蓝领结 + 金扣 -->
+  <path d="M160 168c-26 0-42 14-46 34 14 8 30 10 46 10s32-2 46-10c-4-20-20-34-46-34Z" fill="#F7F9FC"/>
+  <path d="M160 172c-24 0-38 12-42 28 14 8 28 10 42 10s28-2 42-10c-4-16-18-28-42-28Z" fill="#2A3663"/>
+  <path d="M146 180h-12c-3 0-4 4-2 6l12 8c3 1 6 0 7-3l-6-11ZM174 180h12c3 0 4 4 2 6l-12 8c-3 1-6 0-7-3l6-11Z" fill="#22335E"/>
+  <circle cx="160" cy="186" r="3.2" fill="#C9A227"/>
+  <circle cx="155" cy="196" r="2" fill="#C9A227"/><circle cx="165" cy="196" r="2" fill="#C9A227"/>
+  <circle cx="155" cy="204" r="2" fill="#C9A227"/><circle cx="165" cy="204" r="2" fill="#C9A227"/>
+
+  <!-- 裙:深蓝长裙 + 白围裙 + 鲸刺绣 + 金蝴蝶结 + 白蕾丝下摆 -->
+  <path d="M112 206c-4 26-12 90-18 150-4 40-8 76-6 100 4 24 30 36 72 36s68-12 72-36c2-24-2-60-6-100-6-60-14-124-18-150-16-8-32-10-48-10s-32 2-48 10Z" fill="#2A3663"/>
+  <!-- 裙底刺绣(金线) -->
+  <path d="M96 452c6-2 12 0 16 4-4 4-12 5-16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M224 452c-6-2-12 0-16 4 4 4 12 5 16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M110 470c8 6 18 8 30 8M210 470c-8 6-18 8-30 8" stroke="#C9A227" stroke-width="1.4" fill="none" opacity="0.8"/>
+  <!-- 白围裙(比裙窄,两侧露出深蓝裙) -->
+  <path d="M134 212c-3 20-6 70-7 120-1 44-1 78 4 100 4 12 14 16 29 16s25-4 29-16c5-22 5-56 4-100-1-50-4-100-7-120-9-5-17-7-26-7s-17 2-26 7Z" fill="#F7F9FC"/>
+  <path d="M116 412c-4 2-6 8-2 12 4-4 8-4 10 0 2-6 6-8 10-6 2 2 2 6 0 8-8 8-22 8-28-2-2-4 0-8 4-8" fill="#EDF0F6" opacity="0"/>
+  <path d="M120 420c6 6 20 8 40 8s34-2 40-8" stroke="#D9DEE8" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- 围裙鲸鱼刺绣 -->
+  <g transform="translate(160,330)"><ellipse cx="0" cy="4" rx="16" ry="9" fill="#2A3663"/><path d="M14 1c4-1 7-3 8-6 2 4 1 8-2 10 2 1 4 2 6 3-4 1-8 1-11-1Z" fill="#2A3663"/><circle cx="-7" cy="2" r="1.4" fill="#F7F9FC"/><path d="M-2 -6c1-3 3-5 6-6-1 3-1 6 1 8" fill="#4E7EC0"/></g>
+
+  <!-- 白蕾丝下摆 -->
+  <path d="M86 452c2 18 12 30 34 34-8 8-22 8-30-2-6-8-8-16-8-28ZM234 452c-2 18-12 30-34 34 8 8 22 8 30-2 6-8 8-16 8-28Z" fill="#F7F9FC"/>
+  <path d="M90 456c14 8 44 12 70 12s56-4 70-12" stroke="#F7F9FC" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M96 458c8 5 22 8 30 9M224 458c-8 5-22 8-30 9" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+
+  <!-- 袜与鞋 -->
+  <rect x="132" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <rect x="170" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <path d="M130 516c-4 2-6 6-6 10 0 8 6 14 14 14 7 0 13-4 13-10v-14h-21Z" fill="#F7F9FC"/>
+  <path d="M190 516c4 2 6 6 6 10 0 8-6 14-14 14-7 0-13-4-13-10v-14h21Z" fill="#F7F9FC"/>
+  <path d="M126 522c2-2 4-3 6-3M132 522v14M194 522c-2-2-4-3-6-3M188 522v14" stroke="#D9DEE8" stroke-width="1.6"/>
+  <path d="M122 538c0 6 8 10 16 10s16-4 16-10v-8H122v8Z" fill="#2A3663"/>
+  <path d="M182 538c0 6 8 10 16 10s16-4 16-10v-8h-16v8Z" fill="#2A3663"/>
+  <path d="M124 536h30M184 536h30" stroke="#22335E" stroke-width="3"/>
+  <path d="M138 540h4M194 540h4" stroke="#C9A227" stroke-width="2" stroke-linecap="round"/>
+  </svg></div>
+<div class="card" style="margin-top:12px">
+  <div class="row">
+    <div>
+      <div style="font-size:19px;font-weight:700">小鲸</div>
+      <div class="tiny" style="margin-top:4px">深海来的 · 角色包 v1.2 · 编号 NO.0001</div>
+    </div>
+    <span class="pill on">相处 47 天</span>
+  </div>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="cap">角色圣经</div>
+  <div class="rowc" style="margin-top:10px;flex-wrap:wrap;gap:8px">
+    <span class="pill">性格:慢热,话不多</span><span class="pill">口癖:喜欢说「大概吧」</span><span class="pill">关系线:同住人</span>
+  </div>
+  <div class="tiny" style="margin-top:11px;line-height:1.7">圣经是公开可查的;任何改动都会提前公示,旧版本可以回滚。</div>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="cap">音色</div>
+  <div class="row" style="margin-top:10px">
+    <div><div style="font-size:14.5px;font-weight:600">鲸声 · 清亮</div><div class="tiny" style="margin-top:3px">已录制的基础音色永不更换</div></div>
+    <span class="pill on"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 13.4v-1.6a7.4 7.4 0 0 1 14.8 0v1.6"/><path d="M4.6 13.4h2.2c.6 0 1 .4 1 1v3.2c0 .6-.4 1-1 1H5.6c-.6 0-1-.4-1-1v-4.2Z"/><path d="M19.4 13.4h-2.2c-.6 0-1 .4-1 1v3.2c0 .6.4 1 1 1h1.2c.6 0 1-.4 1-1v-4.2Z"/></svg>试听</span>
+  </div>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="cap">它正在讲的故事</div>
+  <div class="row" style="margin-top:10px">
+    <div><div style="font-size:14.5px;font-weight:600">第 6 章 · 海里的灯塔</div><div class="tiny" style="margin-top:3px">每周三更新 · 已更新 6 周</div></div>
+    <span class="pill on"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 13.4v-1.6a7.4 7.4 0 0 1 14.8 0v1.6"/><path d="M4.6 13.4h2.2c.6 0 1 .4 1 1v3.2c0 .6-.4 1-1 1H5.6c-.6 0-1-.4-1-1v-4.2Z"/><path d="M19.4 13.4h-2.2c-.6 0-1 .4-1 1v3.2c0 .6.4 1 1 1h1.2c.6 0 1-.4 1-1v-4.2Z"/></svg>继续听</span>
+  </div>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="cap">它记得的相处事实</div>
+  <div style="margin-top:10px;font-size:13.5px;line-height:2">· 你习惯在深夜说话<br>· 不吃香菜<br>· 你说过想读完《海边的卡夫卡》</div>
+  <div class="tiny" style="margin-top:10px;text-align:right"><a href="#/archive/memory">去「记忆」里查看全部 ›</a></div>
+</div></main></template>
+<template data-page="archive/memory"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">档案 · 记忆面板</span><span class="shright"></span></div><div class="aibadge"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12.4" cy="13" rx="7.2" ry="4.4" fill="currentColor" stroke="none"/><path d="M18.6 11.8c2-.8 3.6-2.8 4.2-4.8 1 3 .4 6.2-1.4 8.2 1 1.2 2.6 1.8 4 2.2-2.6 1.4-5.4 1-7.6-.8" fill="currentColor" stroke="none"/><circle cx="8.2" cy="11.4" r="0.9" fill="#fff" stroke="none"/></svg><span>本产品为人工智能合成语音,互动对象不是真人</span></div><main class="content">
+<div class="row" style="margin:0 0 4px"><h1 style="font-size:20px;margin:0">它记得的事</h1><span class="tiny">共 18 条</span></div>
+<p class="sub">可查 · 可改 · 可删 · 记忆永久免费</p>
+<div class="card">
+  <div class="row" style="padding:0 0 13px;border-bottom:1px solid #E4E2D9;gap:10px">
+    <div style="display:flex;gap:10px;align-items:flex-start;flex:1">
+      <span style="color:#3E63B0;margin-top:1px;flex:none"><svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 5.6l2.8 2.8-8.6 8.6-3.6.8.8-3.6 8.6-8.6Z"/><path d="M4.6 20.2h14.8"/></svg></span>
+      <div><div style="font-size:14.5px;font-weight:600">你说过想读完《海边的卡夫卡》</div><div class="tiny" style="margin-top:5px">事实 · 9 月 12 日记住 · 你说过 3 次</div></div>
+    </div>
+    <a class="tiny" href="#/archive/memory-edit">编辑 ›</a>
+  </div>
+  <div class="rowc" style="gap:8px;margin-top:12px">
+    <span class="pill"><svg class="ico" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.4" y="10.4" width="13.2" height="9.2" rx="1.6"/><path d="M8.4 10.4V8.2a3.6 3.6 0 0 1 7.2 0v2.2"/></svg>封存</span><span class="pill"><svg class="ico" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 7.4h13.2"/><path d="M9.4 7.4V5.8c0-.7.5-1.2 1.2-1.2h2.8c.7 0 1.2.5 1.2 1.2v1.6"/><path d="M7.2 7.4l.8 11.4c0 .8.7 1.4 1.5 1.4h5c.8 0 1.5-.6 1.5-1.4l.8-11.4"/></svg>删除</span>
+  </div>
+  <div class="tiny" style="margin-top:10px;line-height:1.7">你删掉的会立刻消失;系统淡忘的会进「已淡忘」档案,你可以把它捡回来。</div>
+</div>
+<div class="card" style="margin-top:12px">
+  
+<div class="row" style="padding:13px 0;border-bottom:1px solid #E4E2D9;gap:10px">
+  <div style="display:flex;gap:10px;align-items:flex-start;flex:1">
+    <span style="color:#3E63B0;margin-top:1px;flex:none"><svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5.4" y="10.4" width="13.2" height="9.2" rx="1.6"/><path d="M8.4 10.4V8.2a3.6 3.6 0 0 1 7.2 0v2.2"/></svg></span>
+    <div><div style="font-size:14.5px;font-weight:600">你说过一次就不想再提的那件事</div><div class="tiny" style="margin-top:5px">已封存 · 它不会主动提起</div></div>
+  </div>
+</div>
+<div class="row" style="padding:13px 0;border-bottom:1px solid #E4E2D9;gap:10px">
+  <div style="display:flex;gap:10px;align-items:flex-start;flex:1">
+    <span style="color:#3E63B0;margin-top:1px;flex:none"><svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.4" y="6.2" width="15.2" height="13.4" rx="1.8"/><path d="M4.4 10.4h15.2M8.6 4.6v3.2M15.4 4.6v3.2"/><path d="M8.4 14.2h2.2M13.4 14.2h2.2"/></svg></span>
+    <div><div style="font-size:14.5px;font-weight:600">8 月 13 日 · 第一次说话</div><div class="tiny" style="margin-top:5px">里程碑 · 它把这天当成生日</div></div>
+  </div>
+</div>
+<div class="row" style="padding:13px 0;border-bottom:1px solid #E4E2D9;gap:10px">
+  <div style="display:flex;gap:10px;align-items:flex-start;flex:1">
+    <span style="color:#3E63B0;margin-top:1px;flex:none"><svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12.4" cy="13" rx="7.2" ry="4.4" fill="currentColor" stroke="none"/><path d="M18.6 11.8c2-.8 3.6-2.8 4.2-4.8 1 3 .4 6.2-1.4 8.2 1 1.2 2.6 1.8 4 2.2-2.6 1.4-5.4 1-7.6-.8" fill="currentColor" stroke="none"/><circle cx="8.2" cy="11.4" r="0.9" fill="#fff" stroke="none"/></svg></span>
+    <div><div style="font-size:14.5px;font-weight:600">你喜欢在深夜说话</div><div class="tiny" style="margin-top:5px">偏好 · 待你确认 · 还没告诉它</div></div>
+  </div>
+</div>
+</div></main></template>
+<template data-page="archive/memory-edit"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">档案 · 编辑记忆</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 12px">编辑这条记忆</h1>
+<div class="card">
+  <div class="cap">它记下来的话</div>
+  <div style="font-size:14.5px;line-height:1.9;margin-top:10px;background:#FAF8F4;border-radius:10px;padding:12px">你说过想读完《海边的卡夫卡》</div>
+  <div class="cap">你能做什么</div>
+  <div class="tiny" style="margin-top:10px;line-height:1.9">改这句话(写得更准) · 设为置顶 · 隐藏 · 删除</div>
+  <div class="rule" style="margin:12px 0"></div>
+  <span class="pill on"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 5.6l2.8 2.8-8.6 8.6-3.6.8.8-3.6 8.6-8.6Z"/><path d="M4.6 20.2h14.8"/></svg>保存</span>
+  <span class="pill"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 7.4h13.2"/><path d="M9.4 7.4V5.8c0-.7.5-1.2 1.2-1.2h2.8c.7 0 1.2.5 1.2 1.2v1.6"/><path d="M7.2 7.4l.8 11.4c0 .8.7 1.4 1.5 1.4h5c.8 0 1.5-.6 1.5-1.4l.8-11.4"/></svg>删除</span>
+  <div class="tiny" style="margin-top:12px;line-height:1.8">删除会立刻消失,不可找回;置顶会永远不被淡忘。</div>
+</div></main></template>
+<template data-page="archive/seal"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">档案 · 封存管理</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 12px">封存管理</h1>
+<p class="sub">说一次,它就永不再提</p>
+<div class="card">
+  
+<div class="row" style="padding:13px 0;border-bottom:1px solid #E4E2D9;gap:10px">
+  <div style="display:flex;gap:10px;align-items:flex-start;flex:1">
+    <span style="color:#3E63B0;margin-top:1px;flex:none"><svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5.4" y="10.4" width="13.2" height="9.2" rx="1.6"/><path d="M8.4 10.4V8.2a3.6 3.6 0 0 1 7.2 0v2.2"/></svg></span>
+    <div><div style="font-size:14.5px;font-weight:600">那件事,你说过一次</div><div class="tiny" style="margin-top:5px">封存于 9 月 18 日 · 永不再提</div></div>
+  </div>
+</div>
+<div class="row" style="padding:13px 0;border-bottom:1px solid #E4E2D9;gap:10px">
+  <div style="display:flex;gap:10px;align-items:flex-start;flex:1">
+    <span style="color:#3E63B0;margin-top:1px;flex:none"><svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5.4" y="10.4" width="13.2" height="9.2" rx="1.6"/><path d="M8.4 10.4V8.2a3.6 3.6 0 0 1 7.2 0v2.2"/></svg></span>
+    <div><div style="font-size:14.5px;font-weight:600">工作上的那个人</div><div class="tiny" style="margin-top:5px">封存于 8 月 30 日</div></div>
+  </div>
+</div>
+  <div class="tiny" style="margin-top:12px;line-height:1.8">封存的内容不会被它提起,也不会用来回应你;你随时可以解封。</div>
+</div></main></template>
+<template data-page="archive/assets"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">档案 · 资产账</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 12px">资产账</h1>
+<p class="sub">只增不减 · 每一件都有来处</p>
+<div class="card">
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">角色 · 小鲸</span><span class="tiny">2026-08-13 领养</span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">外观 · 冬装围巾</span><span class="tiny">2026-09-02</span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">纪念物 · 一枚贝壳</span><span class="tiny">今天的小物,第 3 件</span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">编号 · NO.0001</span><span class="tiny">与底座金属铭牌一致</span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">契约 · 四件事 v1</span><span class="tiny">2026-08-13 签署</span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">信物 · 第一件还没寄出</span><span class="tiny">每季一件 · 编号限量</span></div>
+</div></main></template>
+<template data-page="archive/timeline"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">档案 · 年历</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 12px">年历</h1>
+<p class="sub">记录第一次,也记住普通的日子</p>
+<div class="card">
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">8 月 13 日 · 第一次说话</span><span class="tiny">它的生日</span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">9 月 12 日 · 第一次深夜长谈</span><span class="tiny">21:40 开始</span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">9 月 27 日 · 你第一次出差</span><span class="tiny">它送了你去机场</span></div>
+</div>
+<div class="tiny" style="margin-top:12px;text-align:center;color:#8B93AC">[P1] 更多月份与纪念日标记,二期补齐</div></main></template>
+<template data-page="archive/certificate"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">档案 · 出生证与契约</span><span class="shright"></span></div><div class="aibadge"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12.4" cy="13" rx="7.2" ry="4.4" fill="currentColor" stroke="none"/><path d="M18.6 11.8c2-.8 3.6-2.8 4.2-4.8 1 3 .4 6.2-1.4 8.2 1 1.2 2.6 1.8 4 2.2-2.6 1.4-5.4 1-7.6-.8" fill="currentColor" stroke="none"/><circle cx="8.2" cy="11.4" r="0.9" fill="#fff" stroke="none"/></svg><span>本产品为人工智能合成语音,互动对象不是真人</span></div><main class="content">
+<div style="background:#FBF8F1;border:1px solid #E2DCCF;border-radius:14px;padding:18px 16px;position:relative">
+  <div style="position:absolute;inset:7px;border:1px solid #E8E2D5;border-radius:9px;pointer-events:none"></div>
+  <div style="text-align:center">
+    <div style="font-size:11px;letter-spacing:5px;color:#9A8F79">角 色 出 生 证</div>
+    <div style="display:flex;justify-content:center;margin:12px 0 6px;color:#B9AE95"><svg class="ico" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12.4" cy="13" rx="7.2" ry="4.4" fill="currentColor" stroke="none"/><path d="M18.6 11.8c2-.8 3.6-2.8 4.2-4.8 1 3 .4 6.2-1.4 8.2 1 1.2 2.6 1.8 4 2.2-2.6 1.4-5.4 1-7.6-.8" fill="currentColor" stroke="none"/><circle cx="8.2" cy="11.4" r="0.9" fill="#fff" stroke="none"/></svg></div>
+    <div class="rule" style="background:#E4DECF;margin:10px 0"></div>
+    <div style="font-size:26px;font-family:"KaiTi","STKaiti","楷体",serif;color:#2B2A26;letter-spacing:2px">小&nbsp;鲸</div>
+    <div class="tiny" style="margin-top:8px;color:#8A8271">名字由你写下,随时可以改;每次更改都会留下记录</div>
+    <div class="row" style="margin-top:16px;font-size:11px;color:#8A8271"><span>编号 NO.0001</span><span>角色包 v1.2</span><span>2026-08-13</span></div>
+    <div class="rule" style="background:#E4DECF;margin:11px 0"></div>
+    <div style="font-size:10.5px;color:#9A8F79;letter-spacing:.4px">底座刻有同一编号与日期 · 硬件序列号 SN-2087</div>
+  </div>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="cap">契约卡 · 我们永不做的四件事</div>
+  <div style="margin-top:11px;font-size:13.5px;line-height:2.05">
+    · 永不静默改变它的性格<br>
+    · 永不擅自删除你的记忆<br>
+    · 停服前 12 个月通知,并交付档案<br>
+    · 记忆永久免费,不进任何付费口径
+  </div>
+  <div class="rule" style="margin:14px 0"></div>
+  <div class="row"><div class="tiny">签署于 2026-08-13 · 版本 v1</div><span class="pill on"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 5.6l2.8 2.8-8.6 8.6-3.6.8.8-3.6 8.6-8.6Z"/><path d="M4.6 20.2h14.8"/></svg>签署</span></div>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="cap">签署记录</div>
+  <div style="margin-top:11px">
+    <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">首次签署 · 契约 v1</span><span class="tiny">2026-08-13</span></div>
+    <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">角色包升级 v1.2 · 确认条款未变</span><span class="tiny">2026-09-20</span></div>
+  </div>
+  <div class="tiny" style="margin-top:11px;line-height:1.7">每一次签署都留档;条款只会加,不会偷偷改。</div>
+</div>
+<div class="card" style="margin-top:12px"><div class="tiny" style="line-height:1.8">这张出生证与契约卡,包装里也各有一张实物;上面的编号与底座金属铭牌一致。</div></div></main></template>
+<template data-page="archive/share-card"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">档案 · 分享卡</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 12px">分享卡</h1>
+<p class="sub">把它喜欢的样子,分享给更多人</p>
+<div class="grid2" style="margin-bottom:12px">
+  <div class="card" style="padding:10px">
+    <div class="square" style="aspect-ratio:1/1.1"><svg viewBox="20 4 280 302" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="角色立绘:深蓝女仆鲸娘">
+  <defs>
+    <linearGradient id="m-hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="0.55" stop-color="#4E6FB6"/><stop offset="1" stop-color="#9CD2EF"/>
+    </linearGradient>
+    <linearGradient id="m-iris" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BFE8F6"/><stop offset="0.55" stop-color="#4E7EC0"/><stop offset="1" stop-color="#22335E"/>
+    </linearGradient>
+    <linearGradient id="m-tail" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="1" stop-color="#7FB9DC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 鲸鱼尾(身后,向右扫:尾鳍明显探出裙外) -->
+  <path d="M214 380c40-16 72-46 92-88-4 42-12 82-30 118-14 26-32 40-52 44-11 2-19-7-17-18 2-22 3-40 7-56Z" fill="url(#m-tail)"/>
+  <path d="M256 452c10 4 19 11 26 20-12 7-28 7-40-2-9-7-11-17-7-26 5-9 14-9 21 8Z" fill="url(#m-tail)" opacity="0.92"/>
+
+  <!-- 后发(到腰的长卷发) -->
+  <path d="M160 64c-52 0-76 36-74 84 1 30-4 66-18 108-6 18-4 30 8 40 10 8 22 6 28-4 4-8 4-18 0-28-2 24 6 44 22 52 16 8 36 4 48-4 8-6 12-16 12-26-6-40-10-80-8-118 1-28-6-60-18-104Z" fill="url(#m-hair)"/>
+  <path d="M160 64c52 0 76 36 74 84-1 30 4 66 18 108 6 18 4 30-8 40-10 8-22 6-28-4-4-8-4-18 0-28 2 24-6 44-22 52-16 8-36 4-48-4-8-6-12-16-12-26 6-40 10-80 8-118-1-28 6-60 18-104Z" fill="url(#m-hair)"/>
+
+  <!-- 鲸鳍耳(两侧,向外后) -->
+  <path d="M106 120c-16-7-32-2-40 13 10 1 22 5 31 13 5-5 9-14 9-26Z" fill="#2A3663"/>
+  <path d="M104 124c-12-4-24 0-30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M214 120c16-7 32-2 40 13-10 1-22 5-31 13-5-5-9-14-9-26Z" fill="#2A3663"/>
+  <path d="M216 124c12-4 24 0 30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+
+  <!-- 女仆头饰 -->
+  <path d="M94 92c4-20 30-32 66-32s62 12 66 32c-8-8-20-10-20-10-6-6-16-8-20-8s-14 2-20 8c0 0-12 2-20 10Z" fill="#F7F9FC"/>
+  <path d="M94 92c6-6 12-8 18-8M226 92c-6-6-12-8-18-8M112 82c4-4 10-6 16-7M208 82c-4-4-10-6-16-7M132 76c4-3 8-4 12-4M188 76c-4-3-8-4-12-4" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+  <path d="M94 92c-4 8-2 16 2 22 6-6 8-14 6-22ZM226 92c4 8 2 16-2 22-6-6-8-14-6-22Z" fill="#F7F9FC"/>
+  <!-- 头饰侧蝴蝶结 -->
+  <g transform="translate(226,104)"><path d="M0 0l14-7c4 3 4 9 0 12L0 6c-4 3-4 7 0 10l14-7c4-3 4-9 0-12L0 0Z" fill="#7EC4E8"/><circle cx="0" cy="3" r="3" fill="#4E7EC0"/></g>
+
+  <!-- 头顶卷天线(鲸鱼喷水) -->
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#2A3663" stroke-width="11" stroke-linecap="round"/>
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#5B7FC4" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- 颈 -->
+  <rect x="150" y="160" width="20" height="26" rx="9" fill="#F0CBB4"/>
+  <!-- 肩袖与臂 -->
+  <path d="M114 178c-18 6-28 20-32 42-3 16 0 34 6 52l16-4c-4-16-4-32-2-46 2-12 6-22 12-30Z" fill="#2A3663"/>
+  <path d="M206 178c18 6 28 20 32 42 3 16 0 34-6 52l-16-4c4-16 4-32 2-46-2-12-6-22-12-30Z" fill="#2A3663"/>
+  <path d="M84 262c2 8 4 12 8 16 5 4 10 4 14 0l-4-16-16 4Z" fill="#F0CBB4"/>
+  <path d="M236 262c-2 8-4 12-8 16-5 4-10 4-14 0l4-16 16 4Z" fill="#F0CBB4"/>
+  <path d="M84 258c-2 4 0 10 4 12 4-4 8-8 10-12l-12-4Z" fill="#F7F9FC"/>
+  <path d="M236 258c2 4 0 10-4 12-4-4-8-8-10-12l12-4Z" fill="#F7F9FC"/>
+
+  <!-- 脸 -->
+  <path d="M160 78c-32 0-48 24-48 54 0 30 20 50 48 50s48-20 48-50c0-30-16-54-48-54Z" fill="#FBE4D6"/>
+  <!-- 刘海 -->
+  <path d="M160 74c-34 0-52 24-50 50 8-18 20-24 30-34 6 14 20 18 30 18 12 0 22-6 26-12-2-14-16-22-36-22Z" fill="url(#m-hair)"/>
+  <path d="M112 104c-2 6-3 12-3 18 2 8 6 10 10 12-1-6-2-12-1-18M208 104c2 6 3 12 3 18-2 8-6 10-10 12 1-6 2-12 1-18" fill="url(#m-hair)"/>
+
+  <!-- 眼 -->
+  <ellipse cx="138" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="138" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="141" cy="126" r="2.8" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="185" cy="126" r="2.8" fill="#FFFFFF"/>
+  <path d="M128 116c4-3 9-4 13-3M177 113c4-1 9 0 13 3" stroke="#22335E" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M130 112c3-2 8-2 11 0M179 112c3-2 8-2 11 0" stroke="#5B7FA8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="128" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <ellipse cx="192" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <path d="M154 152c2 4 10 4 12 0" stroke="#B4645C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+
+  <!-- 胸衣:白领 + 深蓝领结 + 金扣 -->
+  <path d="M160 168c-26 0-42 14-46 34 14 8 30 10 46 10s32-2 46-10c-4-20-20-34-46-34Z" fill="#F7F9FC"/>
+  <path d="M160 172c-24 0-38 12-42 28 14 8 28 10 42 10s28-2 42-10c-4-16-18-28-42-28Z" fill="#2A3663"/>
+  <path d="M146 180h-12c-3 0-4 4-2 6l12 8c3 1 6 0 7-3l-6-11ZM174 180h12c3 0 4 4 2 6l-12 8c-3 1-6 0-7-3l6-11Z" fill="#22335E"/>
+  <circle cx="160" cy="186" r="3.2" fill="#C9A227"/>
+  <circle cx="155" cy="196" r="2" fill="#C9A227"/><circle cx="165" cy="196" r="2" fill="#C9A227"/>
+  <circle cx="155" cy="204" r="2" fill="#C9A227"/><circle cx="165" cy="204" r="2" fill="#C9A227"/>
+
+  <!-- 裙:深蓝长裙 + 白围裙 + 鲸刺绣 + 金蝴蝶结 + 白蕾丝下摆 -->
+  <path d="M112 206c-4 26-12 90-18 150-4 40-8 76-6 100 4 24 30 36 72 36s68-12 72-36c2-24-2-60-6-100-6-60-14-124-18-150-16-8-32-10-48-10s-32 2-48 10Z" fill="#2A3663"/>
+  <!-- 裙底刺绣(金线) -->
+  <path d="M96 452c6-2 12 0 16 4-4 4-12 5-16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M224 452c-6-2-12 0-16 4 4 4 12 5 16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M110 470c8 6 18 8 30 8M210 470c-8 6-18 8-30 8" stroke="#C9A227" stroke-width="1.4" fill="none" opacity="0.8"/>
+  <!-- 白围裙(比裙窄,两侧露出深蓝裙) -->
+  <path d="M134 212c-3 20-6 70-7 120-1 44-1 78 4 100 4 12 14 16 29 16s25-4 29-16c5-22 5-56 4-100-1-50-4-100-7-120-9-5-17-7-26-7s-17 2-26 7Z" fill="#F7F9FC"/>
+  <path d="M116 412c-4 2-6 8-2 12 4-4 8-4 10 0 2-6 6-8 10-6 2 2 2 6 0 8-8 8-22 8-28-2-2-4 0-8 4-8" fill="#EDF0F6" opacity="0"/>
+  <path d="M120 420c6 6 20 8 40 8s34-2 40-8" stroke="#D9DEE8" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- 围裙鲸鱼刺绣 -->
+  <g transform="translate(160,330)"><ellipse cx="0" cy="4" rx="16" ry="9" fill="#2A3663"/><path d="M14 1c4-1 7-3 8-6 2 4 1 8-2 10 2 1 4 2 6 3-4 1-8 1-11-1Z" fill="#2A3663"/><circle cx="-7" cy="2" r="1.4" fill="#F7F9FC"/><path d="M-2 -6c1-3 3-5 6-6-1 3-1 6 1 8" fill="#4E7EC0"/></g>
+
+  <!-- 白蕾丝下摆 -->
+  <path d="M86 452c2 18 12 30 34 34-8 8-22 8-30-2-6-8-8-16-8-28ZM234 452c-2 18-12 30-34 34 8 8 22 8 30-2 6-8 8-16 8-28Z" fill="#F7F9FC"/>
+  <path d="M90 456c14 8 44 12 70 12s56-4 70-12" stroke="#F7F9FC" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M96 458c8 5 22 8 30 9M224 458c-8 5-22 8-30 9" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+
+  <!-- 袜与鞋 -->
+  <rect x="132" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <rect x="170" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <path d="M130 516c-4 2-6 6-6 10 0 8 6 14 14 14 7 0 13-4 13-10v-14h-21Z" fill="#F7F9FC"/>
+  <path d="M190 516c4 2 6 6 6 10 0 8-6 14-14 14-7 0-13-4-13-10v-14h21Z" fill="#F7F9FC"/>
+  <path d="M126 522c2-2 4-3 6-3M132 522v14M194 522c-2-2-4-3-6-3M188 522v14" stroke="#D9DEE8" stroke-width="1.6"/>
+  <path d="M122 538c0 6 8 10 16 10s16-4 16-10v-8H122v8Z" fill="#2A3663"/>
+  <path d="M182 538c0 6 8 10 16 10s16-4 16-10v-8h-16v8Z" fill="#2A3663"/>
+  <path d="M124 536h30M184 536h30" stroke="#22335E" stroke-width="3"/>
+  <path d="M138 540h4M194 540h4" stroke="#C9A227" stroke-width="2" stroke-linecap="round"/>
+  </svg></div>
+    <div style="font-size:13px;font-weight:600;margin:9px 0 3px">收藏柜公开卡</div>
+    <div class="tiny">只含资产事实,不含记忆</div>
+  </div>
+  <div class="card" style="padding:10px">
+    <div class="square" style="aspect-ratio:1/1.1"><svg viewBox="0 0 320 560" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="角色立绘:深蓝女仆鲸娘">
+  <defs>
+    <linearGradient id="m-hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="0.55" stop-color="#4E6FB6"/><stop offset="1" stop-color="#9CD2EF"/>
+    </linearGradient>
+    <linearGradient id="m-iris" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BFE8F6"/><stop offset="0.55" stop-color="#4E7EC0"/><stop offset="1" stop-color="#22335E"/>
+    </linearGradient>
+    <linearGradient id="m-tail" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="1" stop-color="#7FB9DC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 鲸鱼尾(身后,向右扫:尾鳍明显探出裙外) -->
+  <path d="M214 380c40-16 72-46 92-88-4 42-12 82-30 118-14 26-32 40-52 44-11 2-19-7-17-18 2-22 3-40 7-56Z" fill="url(#m-tail)"/>
+  <path d="M256 452c10 4 19 11 26 20-12 7-28 7-40-2-9-7-11-17-7-26 5-9 14-9 21 8Z" fill="url(#m-tail)" opacity="0.92"/>
+
+  <!-- 后发(到腰的长卷发) -->
+  <path d="M160 64c-52 0-76 36-74 84 1 30-4 66-18 108-6 18-4 30 8 40 10 8 22 6 28-4 4-8 4-18 0-28-2 24 6 44 22 52 16 8 36 4 48-4 8-6 12-16 12-26-6-40-10-80-8-118 1-28-6-60-18-104Z" fill="url(#m-hair)"/>
+  <path d="M160 64c52 0 76 36 74 84-1 30 4 66 18 108 6 18 4 30-8 40-10 8-22 6-28-4-4-8-4-18 0-28 2 24-6 44-22 52-16 8-36 4-48-4-8-6-12-16-12-26 6-40 10-80 8-118-1-28 6-60 18-104Z" fill="url(#m-hair)"/>
+
+  <!-- 鲸鳍耳(两侧,向外后) -->
+  <path d="M106 120c-16-7-32-2-40 13 10 1 22 5 31 13 5-5 9-14 9-26Z" fill="#2A3663"/>
+  <path d="M104 124c-12-4-24 0-30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M214 120c16-7 32-2 40 13-10 1-22 5-31 13-5-5-9-14-9-26Z" fill="#2A3663"/>
+  <path d="M216 124c12-4 24 0 30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+
+  <!-- 女仆头饰 -->
+  <path d="M94 92c4-20 30-32 66-32s62 12 66 32c-8-8-20-10-20-10-6-6-16-8-20-8s-14 2-20 8c0 0-12 2-20 10Z" fill="#F7F9FC"/>
+  <path d="M94 92c6-6 12-8 18-8M226 92c-6-6-12-8-18-8M112 82c4-4 10-6 16-7M208 82c-4-4-10-6-16-7M132 76c4-3 8-4 12-4M188 76c-4-3-8-4-12-4" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+  <path d="M94 92c-4 8-2 16 2 22 6-6 8-14 6-22ZM226 92c4 8 2 16-2 22-6-6-8-14-6-22Z" fill="#F7F9FC"/>
+  <!-- 头饰侧蝴蝶结 -->
+  <g transform="translate(226,104)"><path d="M0 0l14-7c4 3 4 9 0 12L0 6c-4 3-4 7 0 10l14-7c4-3 4-9 0-12L0 0Z" fill="#7EC4E8"/><circle cx="0" cy="3" r="3" fill="#4E7EC0"/></g>
+
+  <!-- 头顶卷天线(鲸鱼喷水) -->
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#2A3663" stroke-width="11" stroke-linecap="round"/>
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#5B7FC4" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- 颈 -->
+  <rect x="150" y="160" width="20" height="26" rx="9" fill="#F0CBB4"/>
+  <!-- 肩袖与臂 -->
+  <path d="M114 178c-18 6-28 20-32 42-3 16 0 34 6 52l16-4c-4-16-4-32-2-46 2-12 6-22 12-30Z" fill="#2A3663"/>
+  <path d="M206 178c18 6 28 20 32 42 3 16 0 34-6 52l-16-4c4-16 4-32 2-46-2-12-6-22-12-30Z" fill="#2A3663"/>
+  <path d="M84 262c2 8 4 12 8 16 5 4 10 4 14 0l-4-16-16 4Z" fill="#F0CBB4"/>
+  <path d="M236 262c-2 8-4 12-8 16-5 4-10 4-14 0l4-16 16 4Z" fill="#F0CBB4"/>
+  <path d="M84 258c-2 4 0 10 4 12 4-4 8-8 10-12l-12-4Z" fill="#F7F9FC"/>
+  <path d="M236 258c2 4 0 10-4 12-4-4-8-8-10-12l12-4Z" fill="#F7F9FC"/>
+
+  <!-- 脸 -->
+  <path d="M160 78c-32 0-48 24-48 54 0 30 20 50 48 50s48-20 48-50c0-30-16-54-48-54Z" fill="#FBE4D6"/>
+  <!-- 刘海 -->
+  <path d="M160 74c-34 0-52 24-50 50 8-18 20-24 30-34 6 14 20 18 30 18 12 0 22-6 26-12-2-14-16-22-36-22Z" fill="url(#m-hair)"/>
+  <path d="M112 104c-2 6-3 12-3 18 2 8 6 10 10 12-1-6-2-12-1-18M208 104c2 6 3 12 3 18-2 8-6 10-10 12 1-6 2-12 1-18" fill="url(#m-hair)"/>
+
+  <!-- 眼 -->
+  <ellipse cx="138" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="138" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="141" cy="126" r="2.8" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="185" cy="126" r="2.8" fill="#FFFFFF"/>
+  <path d="M128 116c4-3 9-4 13-3M177 113c4-1 9 0 13 3" stroke="#22335E" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M130 112c3-2 8-2 11 0M179 112c3-2 8-2 11 0" stroke="#5B7FA8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="128" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <ellipse cx="192" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <path d="M154 152c2 4 10 4 12 0" stroke="#B4645C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+
+  <!-- 胸衣:白领 + 深蓝领结 + 金扣 -->
+  <path d="M160 168c-26 0-42 14-46 34 14 8 30 10 46 10s32-2 46-10c-4-20-20-34-46-34Z" fill="#F7F9FC"/>
+  <path d="M160 172c-24 0-38 12-42 28 14 8 28 10 42 10s28-2 42-10c-4-16-18-28-42-28Z" fill="#2A3663"/>
+  <path d="M146 180h-12c-3 0-4 4-2 6l12 8c3 1 6 0 7-3l-6-11ZM174 180h12c3 0 4 4 2 6l-12 8c-3 1-6 0-7-3l6-11Z" fill="#22335E"/>
+  <circle cx="160" cy="186" r="3.2" fill="#C9A227"/>
+  <circle cx="155" cy="196" r="2" fill="#C9A227"/><circle cx="165" cy="196" r="2" fill="#C9A227"/>
+  <circle cx="155" cy="204" r="2" fill="#C9A227"/><circle cx="165" cy="204" r="2" fill="#C9A227"/>
+
+  <!-- 裙:深蓝长裙 + 白围裙 + 鲸刺绣 + 金蝴蝶结 + 白蕾丝下摆 -->
+  <path d="M112 206c-4 26-12 90-18 150-4 40-8 76-6 100 4 24 30 36 72 36s68-12 72-36c2-24-2-60-6-100-6-60-14-124-18-150-16-8-32-10-48-10s-32 2-48 10Z" fill="#2A3663"/>
+  <!-- 裙底刺绣(金线) -->
+  <path d="M96 452c6-2 12 0 16 4-4 4-12 5-16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M224 452c-6-2-12 0-16 4 4 4 12 5 16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M110 470c8 6 18 8 30 8M210 470c-8 6-18 8-30 8" stroke="#C9A227" stroke-width="1.4" fill="none" opacity="0.8"/>
+  <!-- 白围裙(比裙窄,两侧露出深蓝裙) -->
+  <path d="M134 212c-3 20-6 70-7 120-1 44-1 78 4 100 4 12 14 16 29 16s25-4 29-16c5-22 5-56 4-100-1-50-4-100-7-120-9-5-17-7-26-7s-17 2-26 7Z" fill="#F7F9FC"/>
+  <path d="M116 412c-4 2-6 8-2 12 4-4 8-4 10 0 2-6 6-8 10-6 2 2 2 6 0 8-8 8-22 8-28-2-2-4 0-8 4-8" fill="#EDF0F6" opacity="0"/>
+  <path d="M120 420c6 6 20 8 40 8s34-2 40-8" stroke="#D9DEE8" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- 围裙鲸鱼刺绣 -->
+  <g transform="translate(160,330)"><ellipse cx="0" cy="4" rx="16" ry="9" fill="#2A3663"/><path d="M14 1c4-1 7-3 8-6 2 4 1 8-2 10 2 1 4 2 6 3-4 1-8 1-11-1Z" fill="#2A3663"/><circle cx="-7" cy="2" r="1.4" fill="#F7F9FC"/><path d="M-2 -6c1-3 3-5 6-6-1 3-1 6 1 8" fill="#4E7EC0"/></g>
+
+  <!-- 白蕾丝下摆 -->
+  <path d="M86 452c2 18 12 30 34 34-8 8-22 8-30-2-6-8-8-16-8-28ZM234 452c-2 18-12 30-34 34 8 8 22 8 30-2 6-8 8-16 8-28Z" fill="#F7F9FC"/>
+  <path d="M90 456c14 8 44 12 70 12s56-4 70-12" stroke="#F7F9FC" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M96 458c8 5 22 8 30 9M224 458c-8 5-22 8-30 9" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+
+  <!-- 袜与鞋 -->
+  <rect x="132" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <rect x="170" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <path d="M130 516c-4 2-6 6-6 10 0 8 6 14 14 14 7 0 13-4 13-10v-14h-21Z" fill="#F7F9FC"/>
+  <path d="M190 516c4 2 6 6 6 10 0 8-6 14-14 14-7 0-13-4-13-10v-14h21Z" fill="#F7F9FC"/>
+  <path d="M126 522c2-2 4-3 6-3M132 522v14M194 522c-2-2-4-3-6-3M188 522v14" stroke="#D9DEE8" stroke-width="1.6"/>
+  <path d="M122 538c0 6 8 10 16 10s16-4 16-10v-8H122v8Z" fill="#2A3663"/>
+  <path d="M182 538c0 6 8 10 16 10s16-4 16-10v-8h-16v8Z" fill="#2A3663"/>
+  <path d="M124 536h30M184 536h30" stroke="#22335E" stroke-width="3"/>
+  <path d="M138 540h4M194 540h4" stroke="#C9A227" stroke-width="2" stroke-linecap="round"/>
+  </svg></div>
+    <div style="font-size:13px;font-weight:600;margin:9px 0 3px">开箱第一句话卡</div>
+    <div class="tiny">认主那一刻</div>
+  </div>
+</div>
+<div class="btn pri" style="background:#26325F"><svg class="ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="12" r="2.4"/><circle cx="17" cy="6.6" r="2.4"/><circle cx="17" cy="17.4" r="2.4"/><path d="M9.2 10.8l5.6-3M9.2 13.2l5.6 3"/></svg>生成分享卡</div>
+<div class="tiny" style="margin-top:12px;line-height:1.8;text-align:center">分享出去的是图片;好友打开的是网页 “/s/:token”,里面只有公开信息,没有你说过的话。</div></main></template>
+<template data-page="community/index"><div class="aibadge"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12.4" cy="13" rx="7.2" ry="4.4" fill="currentColor" stroke="none"/><path d="M18.6 11.8c2-.8 3.6-2.8 4.2-4.8 1 3 .4 6.2-1.4 8.2 1 1.2 2.6 1.8 4 2.2-2.6 1.4-5.4 1-7.6-.8" fill="currentColor" stroke="none"/><circle cx="8.2" cy="11.4" r="0.9" fill="#fff" stroke="none"/></svg><span>本产品为人工智能合成语音,互动对象不是真人</span></div><main class="content">
+<div class="row" style="margin:2px 0 4px"><h1>社区</h1><span class="tiny">官方周更</span></div>
+<p class="sub">这里是角色包与故事的聚集地</p>
+<div class="card" style="padding:0;overflow:hidden">
+  <div style="height:150px;background:linear-gradient(135deg,#22335E,#3E63B0 60%,#7EC4E8)"></div>
+  <div style="padding:14px 16px">
+    <div style="font-size:16px;font-weight:700">这周更新:第 6 章 · 海里的灯塔</div>
+    <div class="tiny" style="margin-top:6px;line-height:1.6">深海书简 · 每周三更新 · 装载后它会在对话里接着讲</div>
+  </div>
+</div>
+<div class="row" style="margin:14px 0 8px"><h2 style="margin:0">精选角色包</h2><a class="tiny" href="#/community/featured">全部 ›</a></div>
+<div class="grid2">
+  <a class="card" style="padding:10px" href="#/community/detail">
+    <div class="square" style="aspect-ratio:1/0.9"><svg viewBox="20 4 280 302" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="角色立绘:深蓝女仆鲸娘">
+  <defs>
+    <linearGradient id="m-hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="0.55" stop-color="#4E6FB6"/><stop offset="1" stop-color="#9CD2EF"/>
+    </linearGradient>
+    <linearGradient id="m-iris" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BFE8F6"/><stop offset="0.55" stop-color="#4E7EC0"/><stop offset="1" stop-color="#22335E"/>
+    </linearGradient>
+    <linearGradient id="m-tail" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="1" stop-color="#7FB9DC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 鲸鱼尾(身后,向右扫:尾鳍明显探出裙外) -->
+  <path d="M214 380c40-16 72-46 92-88-4 42-12 82-30 118-14 26-32 40-52 44-11 2-19-7-17-18 2-22 3-40 7-56Z" fill="url(#m-tail)"/>
+  <path d="M256 452c10 4 19 11 26 20-12 7-28 7-40-2-9-7-11-17-7-26 5-9 14-9 21 8Z" fill="url(#m-tail)" opacity="0.92"/>
+
+  <!-- 后发(到腰的长卷发) -->
+  <path d="M160 64c-52 0-76 36-74 84 1 30-4 66-18 108-6 18-4 30 8 40 10 8 22 6 28-4 4-8 4-18 0-28-2 24 6 44 22 52 16 8 36 4 48-4 8-6 12-16 12-26-6-40-10-80-8-118 1-28-6-60-18-104Z" fill="url(#m-hair)"/>
+  <path d="M160 64c52 0 76 36 74 84-1 30 4 66 18 108 6 18 4 30-8 40-10 8-22 6-28-4-4-8-4-18 0-28 2 24-6 44-22 52-16 8-36 4-48-4-8-6-12-16-12-26 6-40 10-80 8-118-1-28 6-60 18-104Z" fill="url(#m-hair)"/>
+
+  <!-- 鲸鳍耳(两侧,向外后) -->
+  <path d="M106 120c-16-7-32-2-40 13 10 1 22 5 31 13 5-5 9-14 9-26Z" fill="#2A3663"/>
+  <path d="M104 124c-12-4-24 0-30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M214 120c16-7 32-2 40 13-10 1-22 5-31 13-5-5-9-14-9-26Z" fill="#2A3663"/>
+  <path d="M216 124c12-4 24 0 30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+
+  <!-- 女仆头饰 -->
+  <path d="M94 92c4-20 30-32 66-32s62 12 66 32c-8-8-20-10-20-10-6-6-16-8-20-8s-14 2-20 8c0 0-12 2-20 10Z" fill="#F7F9FC"/>
+  <path d="M94 92c6-6 12-8 18-8M226 92c-6-6-12-8-18-8M112 82c4-4 10-6 16-7M208 82c-4-4-10-6-16-7M132 76c4-3 8-4 12-4M188 76c-4-3-8-4-12-4" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+  <path d="M94 92c-4 8-2 16 2 22 6-6 8-14 6-22ZM226 92c4 8 2 16-2 22-6-6-8-14-6-22Z" fill="#F7F9FC"/>
+  <!-- 头饰侧蝴蝶结 -->
+  <g transform="translate(226,104)"><path d="M0 0l14-7c4 3 4 9 0 12L0 6c-4 3-4 7 0 10l14-7c4-3 4-9 0-12L0 0Z" fill="#7EC4E8"/><circle cx="0" cy="3" r="3" fill="#4E7EC0"/></g>
+
+  <!-- 头顶卷天线(鲸鱼喷水) -->
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#2A3663" stroke-width="11" stroke-linecap="round"/>
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#5B7FC4" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- 颈 -->
+  <rect x="150" y="160" width="20" height="26" rx="9" fill="#F0CBB4"/>
+  <!-- 肩袖与臂 -->
+  <path d="M114 178c-18 6-28 20-32 42-3 16 0 34 6 52l16-4c-4-16-4-32-2-46 2-12 6-22 12-30Z" fill="#2A3663"/>
+  <path d="M206 178c18 6 28 20 32 42 3 16 0 34-6 52l-16-4c4-16 4-32 2-46-2-12-6-22-12-30Z" fill="#2A3663"/>
+  <path d="M84 262c2 8 4 12 8 16 5 4 10 4 14 0l-4-16-16 4Z" fill="#F0CBB4"/>
+  <path d="M236 262c-2 8-4 12-8 16-5 4-10 4-14 0l4-16 16 4Z" fill="#F0CBB4"/>
+  <path d="M84 258c-2 4 0 10 4 12 4-4 8-8 10-12l-12-4Z" fill="#F7F9FC"/>
+  <path d="M236 258c2 4 0 10-4 12-4-4-8-8-10-12l12-4Z" fill="#F7F9FC"/>
+
+  <!-- 脸 -->
+  <path d="M160 78c-32 0-48 24-48 54 0 30 20 50 48 50s48-20 48-50c0-30-16-54-48-54Z" fill="#FBE4D6"/>
+  <!-- 刘海 -->
+  <path d="M160 74c-34 0-52 24-50 50 8-18 20-24 30-34 6 14 20 18 30 18 12 0 22-6 26-12-2-14-16-22-36-22Z" fill="url(#m-hair)"/>
+  <path d="M112 104c-2 6-3 12-3 18 2 8 6 10 10 12-1-6-2-12-1-18M208 104c2 6 3 12 3 18-2 8-6 10-10 12 1-6 2-12 1-18" fill="url(#m-hair)"/>
+
+  <!-- 眼 -->
+  <ellipse cx="138" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="138" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="141" cy="126" r="2.8" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="185" cy="126" r="2.8" fill="#FFFFFF"/>
+  <path d="M128 116c4-3 9-4 13-3M177 113c4-1 9 0 13 3" stroke="#22335E" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M130 112c3-2 8-2 11 0M179 112c3-2 8-2 11 0" stroke="#5B7FA8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="128" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <ellipse cx="192" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <path d="M154 152c2 4 10 4 12 0" stroke="#B4645C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+
+  <!-- 胸衣:白领 + 深蓝领结 + 金扣 -->
+  <path d="M160 168c-26 0-42 14-46 34 14 8 30 10 46 10s32-2 46-10c-4-20-20-34-46-34Z" fill="#F7F9FC"/>
+  <path d="M160 172c-24 0-38 12-42 28 14 8 28 10 42 10s28-2 42-10c-4-16-18-28-42-28Z" fill="#2A3663"/>
+  <path d="M146 180h-12c-3 0-4 4-2 6l12 8c3 1 6 0 7-3l-6-11ZM174 180h12c3 0 4 4 2 6l-12 8c-3 1-6 0-7-3l6-11Z" fill="#22335E"/>
+  <circle cx="160" cy="186" r="3.2" fill="#C9A227"/>
+  <circle cx="155" cy="196" r="2" fill="#C9A227"/><circle cx="165" cy="196" r="2" fill="#C9A227"/>
+  <circle cx="155" cy="204" r="2" fill="#C9A227"/><circle cx="165" cy="204" r="2" fill="#C9A227"/>
+
+  <!-- 裙:深蓝长裙 + 白围裙 + 鲸刺绣 + 金蝴蝶结 + 白蕾丝下摆 -->
+  <path d="M112 206c-4 26-12 90-18 150-4 40-8 76-6 100 4 24 30 36 72 36s68-12 72-36c2-24-2-60-6-100-6-60-14-124-18-150-16-8-32-10-48-10s-32 2-48 10Z" fill="#2A3663"/>
+  <!-- 裙底刺绣(金线) -->
+  <path d="M96 452c6-2 12 0 16 4-4 4-12 5-16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M224 452c-6-2-12 0-16 4 4 4 12 5 16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M110 470c8 6 18 8 30 8M210 470c-8 6-18 8-30 8" stroke="#C9A227" stroke-width="1.4" fill="none" opacity="0.8"/>
+  <!-- 白围裙(比裙窄,两侧露出深蓝裙) -->
+  <path d="M134 212c-3 20-6 70-7 120-1 44-1 78 4 100 4 12 14 16 29 16s25-4 29-16c5-22 5-56 4-100-1-50-4-100-7-120-9-5-17-7-26-7s-17 2-26 7Z" fill="#F7F9FC"/>
+  <path d="M116 412c-4 2-6 8-2 12 4-4 8-4 10 0 2-6 6-8 10-6 2 2 2 6 0 8-8 8-22 8-28-2-2-4 0-8 4-8" fill="#EDF0F6" opacity="0"/>
+  <path d="M120 420c6 6 20 8 40 8s34-2 40-8" stroke="#D9DEE8" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- 围裙鲸鱼刺绣 -->
+  <g transform="translate(160,330)"><ellipse cx="0" cy="4" rx="16" ry="9" fill="#2A3663"/><path d="M14 1c4-1 7-3 8-6 2 4 1 8-2 10 2 1 4 2 6 3-4 1-8 1-11-1Z" fill="#2A3663"/><circle cx="-7" cy="2" r="1.4" fill="#F7F9FC"/><path d="M-2 -6c1-3 3-5 6-6-1 3-1 6 1 8" fill="#4E7EC0"/></g>
+
+  <!-- 白蕾丝下摆 -->
+  <path d="M86 452c2 18 12 30 34 34-8 8-22 8-30-2-6-8-8-16-8-28ZM234 452c-2 18-12 30-34 34 8 8 22 8 30-2 6-8 8-16 8-28Z" fill="#F7F9FC"/>
+  <path d="M90 456c14 8 44 12 70 12s56-4 70-12" stroke="#F7F9FC" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M96 458c8 5 22 8 30 9M224 458c-8 5-22 8-30 9" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+
+  <!-- 袜与鞋 -->
+  <rect x="132" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <rect x="170" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <path d="M130 516c-4 2-6 6-6 10 0 8 6 14 14 14 7 0 13-4 13-10v-14h-21Z" fill="#F7F9FC"/>
+  <path d="M190 516c4 2 6 6 6 10 0 8-6 14-14 14-7 0-13-4-13-10v-14h21Z" fill="#F7F9FC"/>
+  <path d="M126 522c2-2 4-3 6-3M132 522v14M194 522c-2-2-4-3-6-3M188 522v14" stroke="#D9DEE8" stroke-width="1.6"/>
+  <path d="M122 538c0 6 8 10 16 10s16-4 16-10v-8H122v8Z" fill="#2A3663"/>
+  <path d="M182 538c0 6 8 10 16 10s16-4 16-10v-8h-16v8Z" fill="#2A3663"/>
+  <path d="M124 536h30M184 536h30" stroke="#22335E" stroke-width="3"/>
+  <path d="M138 540h4M194 540h4" stroke="#C9A227" stroke-width="2" stroke-linecap="round"/>
+  </svg></div>
+    <div style="font-size:14px;font-weight:600;margin:9px 0 3px">小鲸 · 深海书简</div>
+    <div class="tiny">官方 · 连载角色</div>
+  </a>
+  <a class="card" style="padding:10px;background:#FAF8F4;border-style:dashed;border-color:#D8D4CC">
+    <div style="aspect-ratio:1/0.9;display:flex;align-items:center;justify-content:center;text-align:center;color:#8B93AC"><div><div style="font-size:24px;font-weight:200">＋</div><div class="tiny" style="margin-top:8px">更多官方精选<br>陆续上架</div></div></div>
+  </a>
+</div></main><nav class="tabbar"><a class="tab " href="#/hand/today"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4c2 0 3.4 1.5 3.4 3.4 0 1.6-.9 2.6-1.6 3.2h3.4c1 0 1.8.8 1.8 1.8v1.6H6.6v-1.6c0-1 .8-1.8 1.8-1.8h3.4c-.7-.6-1.6-1.6-1.6-3.2 0-1.9 1.4-3.4 3.4-3.4Z"/><path d="M5.4 15.6h13.2v3.2c0 .6-.5 1.1-1.1 1.1H6.5c-.6 0-1.1-.5-1.1-1.1v-3.2Z"/><path d="M3.8 20.4h16.4"/></svg><span>手办</span></a><a class="tab " href="#/archive/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.2c0-.9.7-1.6 1.6-1.6h3.1l1.5 1.9h7.2c.9 0 1.6.7 1.6 1.6v8.5c0 .9-.7 1.6-1.6 1.6H5.6c-.9 0-1.6-.7-1.6-1.6V7.2Z"/><path d="M4 11.2h16"/></svg><span>档案</span></a><a class="tab on" href="#/community/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.4" cy="9.6" r="3"/><path d="M4.4 18.6c0-2.5 2.2-4.2 5-4.2s5 1.7 5 4.2"/><path d="M16 7.4c1.6.3 2.7 1.6 2.7 3.2 0 2-.9 3-2.2 3.6"/><path d="M17.2 14.7c1.9.4 3.2 1.7 3.2 3.9"/></svg><span>社区</span></a><a class="tab " href="#/store/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 8.4h12.8l1.1 10.2c.1.9-.6 1.7-1.6 1.7H6.1c-1 0-1.7-.8-1.6-1.7L5.6 8.4Z"/><path d="M9.1 10.2V7.6a2.9 2.9 0 0 1 5.8 0v2.6"/></svg><span>商店</span></a><a class="tab " href="#/me/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.6" r="3.4"/><path d="M5.6 19.4c0-3 2.9-5 6.4-5s6.4 2 6.4 5"/></svg><span>我的</span></a></nav></template>
+<template data-page="community/featured"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">社区 · 精选角色包</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 12px">精选角色包</h1>
+<p class="sub">官方精选 · 每周更新</p>
+<div class="card">
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">小鲸 · 深海书简(官方)</span><span class="tiny">连载 6 章 · 免费</span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">栗子 · 失眠图书馆(官方)</span><span class="tiny">睡前短读 · 免费</span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">川 · 周末咖啡师(官方)</span><span class="tiny">周末限定 · 免费</span></div>
+</div>
+<div class="tiny" style="margin-top:12px;text-align:center;color:#8B93AC">UGC 开闸延后到主体与审核就绪(「14」§4.6);本期仅官方内容。</div></main></template>
+<template data-page="community/detail"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">社区 · 角色包详情</span><span class="shright"></span></div><main class="content">
+<div class="card" style="padding:0;overflow:hidden">
+  <div style="height:170px;background:linear-gradient(135deg,#22335E,#3E63B0 60%,#7EC4E8);position:relative;display:flex;align-items:flex-end;padding:14px">
+    <div style="color:#fff"><div style="font-size:17px;font-weight:700">小鲸 · 深海书简</div><div style="font-size:11px;opacity:.85;margin-top:4px">官方 · 连载角色 · 6 章</div></div>
+  </div>
+  <div style="padding:14px 16px">
+    <div class="row"><span class="tiny">作者:官方</span><span class="pill on"><svg class="ico" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 13.4v-1.6a7.4 7.4 0 0 1 14.8 0v1.6"/><path d="M4.6 13.4h2.2c.6 0 1 .4 1 1v3.2c0 .6-.4 1-1 1H5.6c-.6 0-1-.4-1-1v-4.2Z"/><path d="M19.4 13.4h-2.2c-.6 0-1 .4-1 1v3.2c0 .6.4 1 1 1h1.2c.6 0 1-.4 1-1v-4.2Z"/></svg>试听角色</span></div>
+    <div class="tiny" style="margin-top:12px;line-height:1.8">一只从深海来的鲸娘。话不多,但会把你们说过的事都记下来。装载它,它就以一个新角色开始在你桌上生活。</div>
+    <div class="btn pri" style="background:#26325F;margin-top:14px">免费装载到我的角色</div>
+  </div>
+</div></main></template>
+<template data-page="store/index"><div class="aibadge"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12.4" cy="13" rx="7.2" ry="4.4" fill="currentColor" stroke="none"/><path d="M18.6 11.8c2-.8 3.6-2.8 4.2-4.8 1 3 .4 6.2-1.4 8.2 1 1.2 2.6 1.8 4 2.2-2.6 1.4-5.4 1-7.6-.8" fill="currentColor" stroke="none"/><circle cx="8.2" cy="11.4" r="0.9" fill="#fff" stroke="none"/></svg><span>本产品为人工智能合成语音,互动对象不是真人</span></div><main class="content">
+<div class="row" style="margin:2px 0 12px"><h1>商店</h1><span class="pill"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 9.2h14.8v3.2c-.9 0-1.6.7-1.6 1.6s.7 1.6 1.6 1.6v3.2H4.6v-3.2c.9 0 1.6-.7 1.6-1.6s-.7-1.6-1.6-1.6V9.2Z"/><path d="M12 9.2v10"/></svg>兑换码</span></div>
+<a style="display:block;border-radius:14px;padding:14px 16px;background:linear-gradient(120deg,#EAF0FA,#D6E4F8);border:1px solid #C9DAF2" href="#/store/free">
+  <div class="row">
+    <div><div style="font-size:15px;font-weight:700;color:#22335E">永久免费区</div><div class="tiny" style="color:#42558F;margin-top:5px;line-height:1.6">对话、记忆、按键互动、离线底稿 —— 不花钱也不缺</div></div>
+    <span class="pill on" style="background:#fff;border-color:#C9DAF2">看看 ›</span>
+  </div>
+</a>
+<div class="rowc" style="margin-top:14px;flex-wrap:wrap;gap:8px">
+  <span class="pill on">角色</span><span class="pill">外观</span><span class="pill">语音</span><span class="pill">事件</span><span class="pill">实物</span>
+</div>
+<div class="grid2" style="margin-top:14px">
+  <a class="card" style="padding:10px" href="#/store/detail">
+    <div class="square" style="aspect-ratio:1/0.9"><svg viewBox="20 4 280 302" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="角色立绘:深蓝女仆鲸娘">
+  <defs>
+    <linearGradient id="m-hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="0.55" stop-color="#4E6FB6"/><stop offset="1" stop-color="#9CD2EF"/>
+    </linearGradient>
+    <linearGradient id="m-iris" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BFE8F6"/><stop offset="0.55" stop-color="#4E7EC0"/><stop offset="1" stop-color="#22335E"/>
+    </linearGradient>
+    <linearGradient id="m-tail" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="1" stop-color="#7FB9DC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 鲸鱼尾(身后,向右扫:尾鳍明显探出裙外) -->
+  <path d="M214 380c40-16 72-46 92-88-4 42-12 82-30 118-14 26-32 40-52 44-11 2-19-7-17-18 2-22 3-40 7-56Z" fill="url(#m-tail)"/>
+  <path d="M256 452c10 4 19 11 26 20-12 7-28 7-40-2-9-7-11-17-7-26 5-9 14-9 21 8Z" fill="url(#m-tail)" opacity="0.92"/>
+
+  <!-- 后发(到腰的长卷发) -->
+  <path d="M160 64c-52 0-76 36-74 84 1 30-4 66-18 108-6 18-4 30 8 40 10 8 22 6 28-4 4-8 4-18 0-28-2 24 6 44 22 52 16 8 36 4 48-4 8-6 12-16 12-26-6-40-10-80-8-118 1-28-6-60-18-104Z" fill="url(#m-hair)"/>
+  <path d="M160 64c52 0 76 36 74 84-1 30 4 66 18 108 6 18 4 30-8 40-10 8-22 6-28-4-4-8-4-18 0-28 2 24-6 44-22 52-16 8-36 4-48-4-8-6-12-16-12-26 6-40 10-80 8-118-1-28 6-60 18-104Z" fill="url(#m-hair)"/>
+
+  <!-- 鲸鳍耳(两侧,向外后) -->
+  <path d="M106 120c-16-7-32-2-40 13 10 1 22 5 31 13 5-5 9-14 9-26Z" fill="#2A3663"/>
+  <path d="M104 124c-12-4-24 0-30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M214 120c16-7 32-2 40 13-10 1-22 5-31 13-5-5-9-14-9-26Z" fill="#2A3663"/>
+  <path d="M216 124c12-4 24 0 30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+
+  <!-- 女仆头饰 -->
+  <path d="M94 92c4-20 30-32 66-32s62 12 66 32c-8-8-20-10-20-10-6-6-16-8-20-8s-14 2-20 8c0 0-12 2-20 10Z" fill="#F7F9FC"/>
+  <path d="M94 92c6-6 12-8 18-8M226 92c-6-6-12-8-18-8M112 82c4-4 10-6 16-7M208 82c-4-4-10-6-16-7M132 76c4-3 8-4 12-4M188 76c-4-3-8-4-12-4" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+  <path d="M94 92c-4 8-2 16 2 22 6-6 8-14 6-22ZM226 92c4 8 2 16-2 22-6-6-8-14-6-22Z" fill="#F7F9FC"/>
+  <!-- 头饰侧蝴蝶结 -->
+  <g transform="translate(226,104)"><path d="M0 0l14-7c4 3 4 9 0 12L0 6c-4 3-4 7 0 10l14-7c4-3 4-9 0-12L0 0Z" fill="#7EC4E8"/><circle cx="0" cy="3" r="3" fill="#4E7EC0"/></g>
+
+  <!-- 头顶卷天线(鲸鱼喷水) -->
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#2A3663" stroke-width="11" stroke-linecap="round"/>
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#5B7FC4" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- 颈 -->
+  <rect x="150" y="160" width="20" height="26" rx="9" fill="#F0CBB4"/>
+  <!-- 肩袖与臂 -->
+  <path d="M114 178c-18 6-28 20-32 42-3 16 0 34 6 52l16-4c-4-16-4-32-2-46 2-12 6-22 12-30Z" fill="#2A3663"/>
+  <path d="M206 178c18 6 28 20 32 42 3 16 0 34-6 52l-16-4c4-16 4-32 2-46-2-12-6-22-12-30Z" fill="#2A3663"/>
+  <path d="M84 262c2 8 4 12 8 16 5 4 10 4 14 0l-4-16-16 4Z" fill="#F0CBB4"/>
+  <path d="M236 262c-2 8-4 12-8 16-5 4-10 4-14 0l4-16 16 4Z" fill="#F0CBB4"/>
+  <path d="M84 258c-2 4 0 10 4 12 4-4 8-8 10-12l-12-4Z" fill="#F7F9FC"/>
+  <path d="M236 258c2 4 0 10-4 12-4-4-8-8-10-12l12-4Z" fill="#F7F9FC"/>
+
+  <!-- 脸 -->
+  <path d="M160 78c-32 0-48 24-48 54 0 30 20 50 48 50s48-20 48-50c0-30-16-54-48-54Z" fill="#FBE4D6"/>
+  <!-- 刘海 -->
+  <path d="M160 74c-34 0-52 24-50 50 8-18 20-24 30-34 6 14 20 18 30 18 12 0 22-6 26-12-2-14-16-22-36-22Z" fill="url(#m-hair)"/>
+  <path d="M112 104c-2 6-3 12-3 18 2 8 6 10 10 12-1-6-2-12-1-18M208 104c2 6 3 12 3 18-2 8-6 10-10 12 1-6 2-12 1-18" fill="url(#m-hair)"/>
+
+  <!-- 眼 -->
+  <ellipse cx="138" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="138" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="141" cy="126" r="2.8" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="185" cy="126" r="2.8" fill="#FFFFFF"/>
+  <path d="M128 116c4-3 9-4 13-3M177 113c4-1 9 0 13 3" stroke="#22335E" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M130 112c3-2 8-2 11 0M179 112c3-2 8-2 11 0" stroke="#5B7FA8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="128" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <ellipse cx="192" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <path d="M154 152c2 4 10 4 12 0" stroke="#B4645C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+
+  <!-- 胸衣:白领 + 深蓝领结 + 金扣 -->
+  <path d="M160 168c-26 0-42 14-46 34 14 8 30 10 46 10s32-2 46-10c-4-20-20-34-46-34Z" fill="#F7F9FC"/>
+  <path d="M160 172c-24 0-38 12-42 28 14 8 28 10 42 10s28-2 42-10c-4-16-18-28-42-28Z" fill="#2A3663"/>
+  <path d="M146 180h-12c-3 0-4 4-2 6l12 8c3 1 6 0 7-3l-6-11ZM174 180h12c3 0 4 4 2 6l-12 8c-3 1-6 0-7-3l6-11Z" fill="#22335E"/>
+  <circle cx="160" cy="186" r="3.2" fill="#C9A227"/>
+  <circle cx="155" cy="196" r="2" fill="#C9A227"/><circle cx="165" cy="196" r="2" fill="#C9A227"/>
+  <circle cx="155" cy="204" r="2" fill="#C9A227"/><circle cx="165" cy="204" r="2" fill="#C9A227"/>
+
+  <!-- 裙:深蓝长裙 + 白围裙 + 鲸刺绣 + 金蝴蝶结 + 白蕾丝下摆 -->
+  <path d="M112 206c-4 26-12 90-18 150-4 40-8 76-6 100 4 24 30 36 72 36s68-12 72-36c2-24-2-60-6-100-6-60-14-124-18-150-16-8-32-10-48-10s-32 2-48 10Z" fill="#2A3663"/>
+  <!-- 裙底刺绣(金线) -->
+  <path d="M96 452c6-2 12 0 16 4-4 4-12 5-16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M224 452c-6-2-12 0-16 4 4 4 12 5 16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M110 470c8 6 18 8 30 8M210 470c-8 6-18 8-30 8" stroke="#C9A227" stroke-width="1.4" fill="none" opacity="0.8"/>
+  <!-- 白围裙(比裙窄,两侧露出深蓝裙) -->
+  <path d="M134 212c-3 20-6 70-7 120-1 44-1 78 4 100 4 12 14 16 29 16s25-4 29-16c5-22 5-56 4-100-1-50-4-100-7-120-9-5-17-7-26-7s-17 2-26 7Z" fill="#F7F9FC"/>
+  <path d="M116 412c-4 2-6 8-2 12 4-4 8-4 10 0 2-6 6-8 10-6 2 2 2 6 0 8-8 8-22 8-28-2-2-4 0-8 4-8" fill="#EDF0F6" opacity="0"/>
+  <path d="M120 420c6 6 20 8 40 8s34-2 40-8" stroke="#D9DEE8" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- 围裙鲸鱼刺绣 -->
+  <g transform="translate(160,330)"><ellipse cx="0" cy="4" rx="16" ry="9" fill="#2A3663"/><path d="M14 1c4-1 7-3 8-6 2 4 1 8-2 10 2 1 4 2 6 3-4 1-8 1-11-1Z" fill="#2A3663"/><circle cx="-7" cy="2" r="1.4" fill="#F7F9FC"/><path d="M-2 -6c1-3 3-5 6-6-1 3-1 6 1 8" fill="#4E7EC0"/></g>
+
+  <!-- 白蕾丝下摆 -->
+  <path d="M86 452c2 18 12 30 34 34-8 8-22 8-30-2-6-8-8-16-8-28ZM234 452c-2 18-12 30-34 34 8 8 22 8 30-2 6-8 8-16 8-28Z" fill="#F7F9FC"/>
+  <path d="M90 456c14 8 44 12 70 12s56-4 70-12" stroke="#F7F9FC" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M96 458c8 5 22 8 30 9M224 458c-8 5-22 8-30 9" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+
+  <!-- 袜与鞋 -->
+  <rect x="132" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <rect x="170" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <path d="M130 516c-4 2-6 6-6 10 0 8 6 14 14 14 7 0 13-4 13-10v-14h-21Z" fill="#F7F9FC"/>
+  <path d="M190 516c4 2 6 6 6 10 0 8-6 14-14 14-7 0-13-4-13-10v-14h21Z" fill="#F7F9FC"/>
+  <path d="M126 522c2-2 4-3 6-3M132 522v14M194 522c-2-2-4-3-6-3M188 522v14" stroke="#D9DEE8" stroke-width="1.6"/>
+  <path d="M122 538c0 6 8 10 16 10s16-4 16-10v-8H122v8Z" fill="#2A3663"/>
+  <path d="M182 538c0 6 8 10 16 10s16-4 16-10v-8h-16v8Z" fill="#2A3663"/>
+  <path d="M124 536h30M184 536h30" stroke="#22335E" stroke-width="3"/>
+  <path d="M138 540h4M194 540h4" stroke="#C9A227" stroke-width="2" stroke-linecap="round"/>
+  </svg></div>
+    <div style="font-size:14px;font-weight:600;margin:10px 0 4px">深海书简</div>
+    <div class="tiny">角色包 · 附 6 章连载</div>
+    <div class="row" style="margin-top:9px"><span style="font-size:13.5px;font-weight:600">¥ 29</span><span class="tiny">可兑换</span></div>
+  </a>
+  <a class="card" style="padding:10px" href="#/store/detail">
+    <div style="aspect-ratio:1/0.9;border-radius:12px;background:linear-gradient(160deg,#F3F1EA,#E7E2D6);display:flex;align-items:center;justify-content:center;color:#9A9384"><span class="tiny">外观预览</span></div>
+    <div style="font-size:14px;font-weight:600;margin:10px 0 4px">冬装 · 围巾</div>
+    <div class="tiny">外观 · 换装不影响记忆</div>
+    <div class="row" style="margin-top:9px"><span style="font-size:13.5px;font-weight:600">¥ 19</span><span class="tiny">可兑换</span></div>
+  </a>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="cap">实物 · 信物</div>
+  <div class="tiny" style="margin-top:10px;line-height:1.85">每季把最值得留的那几件事,做成编号限量的实体卡,寄到你手上。<br>订阅期内拿到的信物永久属于你,停订也不收回。</div>
+  <div class="row" style="margin-top:13px"><span class="pill on">看看往季信物</span><span class="tiny">每季一次</span></div>
+</div>
+<div class="card" style="margin-top:12px"><div class="tiny" style="line-height:1.8">标注「永久免费」的东西,不会因为你没有付费而少一点。<br>付费只买「更多」——更多角色、更多外观、更多连载、更多信物。</div></div></main><nav class="tabbar"><a class="tab " href="#/hand/today"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4c2 0 3.4 1.5 3.4 3.4 0 1.6-.9 2.6-1.6 3.2h3.4c1 0 1.8.8 1.8 1.8v1.6H6.6v-1.6c0-1 .8-1.8 1.8-1.8h3.4c-.7-.6-1.6-1.6-1.6-3.2 0-1.9 1.4-3.4 3.4-3.4Z"/><path d="M5.4 15.6h13.2v3.2c0 .6-.5 1.1-1.1 1.1H6.5c-.6 0-1.1-.5-1.1-1.1v-3.2Z"/><path d="M3.8 20.4h16.4"/></svg><span>手办</span></a><a class="tab " href="#/archive/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.2c0-.9.7-1.6 1.6-1.6h3.1l1.5 1.9h7.2c.9 0 1.6.7 1.6 1.6v8.5c0 .9-.7 1.6-1.6 1.6H5.6c-.9 0-1.6-.7-1.6-1.6V7.2Z"/><path d="M4 11.2h16"/></svg><span>档案</span></a><a class="tab " href="#/community/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.4" cy="9.6" r="3"/><path d="M4.4 18.6c0-2.5 2.2-4.2 5-4.2s5 1.7 5 4.2"/><path d="M16 7.4c1.6.3 2.7 1.6 2.7 3.2 0 2-.9 3-2.2 3.6"/><path d="M17.2 14.7c1.9.4 3.2 1.7 3.2 3.9"/></svg><span>社区</span></a><a class="tab on" href="#/store/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 8.4h12.8l1.1 10.2c.1.9-.6 1.7-1.6 1.7H6.1c-1 0-1.7-.8-1.6-1.7L5.6 8.4Z"/><path d="M9.1 10.2V7.6a2.9 2.9 0 0 1 5.8 0v2.6"/></svg><span>商店</span></a><a class="tab " href="#/me/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.6" r="3.4"/><path d="M5.6 19.4c0-3 2.9-5 6.4-5s6.4 2 6.4 5"/></svg><span>我的</span></a></nav></template>
+<template data-page="store/detail"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">商店 · 商品详情</span><span class="shright"></span></div><div class="aibadge"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12.4" cy="13" rx="7.2" ry="4.4" fill="currentColor" stroke="none"/><path d="M18.6 11.8c2-.8 3.6-2.8 4.2-4.8 1 3 .4 6.2-1.4 8.2 1 1.2 2.6 1.8 4 2.2-2.6 1.4-5.4 1-7.6-.8" fill="currentColor" stroke="none"/><circle cx="8.2" cy="11.4" r="0.9" fill="#fff" stroke="none"/></svg><span>本产品为人工智能合成语音,互动对象不是真人</span></div><main class="content">
+<div class="card" style="padding:0;overflow:hidden">
+  <div style="height:200px;background:linear-gradient(165deg,#EAF0FA,#D2E0F5)"><svg viewBox="20 4 280 302" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="角色立绘:深蓝女仆鲸娘">
+  <defs>
+    <linearGradient id="m-hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="0.55" stop-color="#4E6FB6"/><stop offset="1" stop-color="#9CD2EF"/>
+    </linearGradient>
+    <linearGradient id="m-iris" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BFE8F6"/><stop offset="0.55" stop-color="#4E7EC0"/><stop offset="1" stop-color="#22335E"/>
+    </linearGradient>
+    <linearGradient id="m-tail" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="1" stop-color="#7FB9DC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 鲸鱼尾(身后,向右扫:尾鳍明显探出裙外) -->
+  <path d="M214 380c40-16 72-46 92-88-4 42-12 82-30 118-14 26-32 40-52 44-11 2-19-7-17-18 2-22 3-40 7-56Z" fill="url(#m-tail)"/>
+  <path d="M256 452c10 4 19 11 26 20-12 7-28 7-40-2-9-7-11-17-7-26 5-9 14-9 21 8Z" fill="url(#m-tail)" opacity="0.92"/>
+
+  <!-- 后发(到腰的长卷发) -->
+  <path d="M160 64c-52 0-76 36-74 84 1 30-4 66-18 108-6 18-4 30 8 40 10 8 22 6 28-4 4-8 4-18 0-28-2 24 6 44 22 52 16 8 36 4 48-4 8-6 12-16 12-26-6-40-10-80-8-118 1-28-6-60-18-104Z" fill="url(#m-hair)"/>
+  <path d="M160 64c52 0 76 36 74 84-1 30 4 66 18 108 6 18 4 30-8 40-10 8-22 6-28-4-4-8-4-18 0-28 2 24-6 44-22 52-16 8-36 4-48-4-8-6-12-16-12-26 6-40 10-80 8-118-1-28 6-60 18-104Z" fill="url(#m-hair)"/>
+
+  <!-- 鲸鳍耳(两侧,向外后) -->
+  <path d="M106 120c-16-7-32-2-40 13 10 1 22 5 31 13 5-5 9-14 9-26Z" fill="#2A3663"/>
+  <path d="M104 124c-12-4-24 0-30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M214 120c16-7 32-2 40 13-10 1-22 5-31 13-5-5-9-14-9-26Z" fill="#2A3663"/>
+  <path d="M216 124c12-4 24 0 30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+
+  <!-- 女仆头饰 -->
+  <path d="M94 92c4-20 30-32 66-32s62 12 66 32c-8-8-20-10-20-10-6-6-16-8-20-8s-14 2-20 8c0 0-12 2-20 10Z" fill="#F7F9FC"/>
+  <path d="M94 92c6-6 12-8 18-8M226 92c-6-6-12-8-18-8M112 82c4-4 10-6 16-7M208 82c-4-4-10-6-16-7M132 76c4-3 8-4 12-4M188 76c-4-3-8-4-12-4" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+  <path d="M94 92c-4 8-2 16 2 22 6-6 8-14 6-22ZM226 92c4 8 2 16-2 22-6-6-8-14-6-22Z" fill="#F7F9FC"/>
+  <!-- 头饰侧蝴蝶结 -->
+  <g transform="translate(226,104)"><path d="M0 0l14-7c4 3 4 9 0 12L0 6c-4 3-4 7 0 10l14-7c4-3 4-9 0-12L0 0Z" fill="#7EC4E8"/><circle cx="0" cy="3" r="3" fill="#4E7EC0"/></g>
+
+  <!-- 头顶卷天线(鲸鱼喷水) -->
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#2A3663" stroke-width="11" stroke-linecap="round"/>
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#5B7FC4" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- 颈 -->
+  <rect x="150" y="160" width="20" height="26" rx="9" fill="#F0CBB4"/>
+  <!-- 肩袖与臂 -->
+  <path d="M114 178c-18 6-28 20-32 42-3 16 0 34 6 52l16-4c-4-16-4-32-2-46 2-12 6-22 12-30Z" fill="#2A3663"/>
+  <path d="M206 178c18 6 28 20 32 42 3 16 0 34-6 52l-16-4c4-16 4-32 2-46-2-12-6-22-12-30Z" fill="#2A3663"/>
+  <path d="M84 262c2 8 4 12 8 16 5 4 10 4 14 0l-4-16-16 4Z" fill="#F0CBB4"/>
+  <path d="M236 262c-2 8-4 12-8 16-5 4-10 4-14 0l4-16 16 4Z" fill="#F0CBB4"/>
+  <path d="M84 258c-2 4 0 10 4 12 4-4 8-8 10-12l-12-4Z" fill="#F7F9FC"/>
+  <path d="M236 258c2 4 0 10-4 12-4-4-8-8-10-12l12-4Z" fill="#F7F9FC"/>
+
+  <!-- 脸 -->
+  <path d="M160 78c-32 0-48 24-48 54 0 30 20 50 48 50s48-20 48-50c0-30-16-54-48-54Z" fill="#FBE4D6"/>
+  <!-- 刘海 -->
+  <path d="M160 74c-34 0-52 24-50 50 8-18 20-24 30-34 6 14 20 18 30 18 12 0 22-6 26-12-2-14-16-22-36-22Z" fill="url(#m-hair)"/>
+  <path d="M112 104c-2 6-3 12-3 18 2 8 6 10 10 12-1-6-2-12-1-18M208 104c2 6 3 12 3 18-2 8-6 10-10 12 1-6 2-12 1-18" fill="url(#m-hair)"/>
+
+  <!-- 眼 -->
+  <ellipse cx="138" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="138" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="141" cy="126" r="2.8" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="185" cy="126" r="2.8" fill="#FFFFFF"/>
+  <path d="M128 116c4-3 9-4 13-3M177 113c4-1 9 0 13 3" stroke="#22335E" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M130 112c3-2 8-2 11 0M179 112c3-2 8-2 11 0" stroke="#5B7FA8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="128" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <ellipse cx="192" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <path d="M154 152c2 4 10 4 12 0" stroke="#B4645C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+
+  <!-- 胸衣:白领 + 深蓝领结 + 金扣 -->
+  <path d="M160 168c-26 0-42 14-46 34 14 8 30 10 46 10s32-2 46-10c-4-20-20-34-46-34Z" fill="#F7F9FC"/>
+  <path d="M160 172c-24 0-38 12-42 28 14 8 28 10 42 10s28-2 42-10c-4-16-18-28-42-28Z" fill="#2A3663"/>
+  <path d="M146 180h-12c-3 0-4 4-2 6l12 8c3 1 6 0 7-3l-6-11ZM174 180h12c3 0 4 4 2 6l-12 8c-3 1-6 0-7-3l6-11Z" fill="#22335E"/>
+  <circle cx="160" cy="186" r="3.2" fill="#C9A227"/>
+  <circle cx="155" cy="196" r="2" fill="#C9A227"/><circle cx="165" cy="196" r="2" fill="#C9A227"/>
+  <circle cx="155" cy="204" r="2" fill="#C9A227"/><circle cx="165" cy="204" r="2" fill="#C9A227"/>
+
+  <!-- 裙:深蓝长裙 + 白围裙 + 鲸刺绣 + 金蝴蝶结 + 白蕾丝下摆 -->
+  <path d="M112 206c-4 26-12 90-18 150-4 40-8 76-6 100 4 24 30 36 72 36s68-12 72-36c2-24-2-60-6-100-6-60-14-124-18-150-16-8-32-10-48-10s-32 2-48 10Z" fill="#2A3663"/>
+  <!-- 裙底刺绣(金线) -->
+  <path d="M96 452c6-2 12 0 16 4-4 4-12 5-16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M224 452c-6-2-12 0-16 4 4 4 12 5 16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M110 470c8 6 18 8 30 8M210 470c-8 6-18 8-30 8" stroke="#C9A227" stroke-width="1.4" fill="none" opacity="0.8"/>
+  <!-- 白围裙(比裙窄,两侧露出深蓝裙) -->
+  <path d="M134 212c-3 20-6 70-7 120-1 44-1 78 4 100 4 12 14 16 29 16s25-4 29-16c5-22 5-56 4-100-1-50-4-100-7-120-9-5-17-7-26-7s-17 2-26 7Z" fill="#F7F9FC"/>
+  <path d="M116 412c-4 2-6 8-2 12 4-4 8-4 10 0 2-6 6-8 10-6 2 2 2 6 0 8-8 8-22 8-28-2-2-4 0-8 4-8" fill="#EDF0F6" opacity="0"/>
+  <path d="M120 420c6 6 20 8 40 8s34-2 40-8" stroke="#D9DEE8" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- 围裙鲸鱼刺绣 -->
+  <g transform="translate(160,330)"><ellipse cx="0" cy="4" rx="16" ry="9" fill="#2A3663"/><path d="M14 1c4-1 7-3 8-6 2 4 1 8-2 10 2 1 4 2 6 3-4 1-8 1-11-1Z" fill="#2A3663"/><circle cx="-7" cy="2" r="1.4" fill="#F7F9FC"/><path d="M-2 -6c1-3 3-5 6-6-1 3-1 6 1 8" fill="#4E7EC0"/></g>
+
+  <!-- 白蕾丝下摆 -->
+  <path d="M86 452c2 18 12 30 34 34-8 8-22 8-30-2-6-8-8-16-8-28ZM234 452c-2 18-12 30-34 34 8 8 22 8 30-2 6-8 8-16 8-28Z" fill="#F7F9FC"/>
+  <path d="M90 456c14 8 44 12 70 12s56-4 70-12" stroke="#F7F9FC" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M96 458c8 5 22 8 30 9M224 458c-8 5-22 8-30 9" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+
+  <!-- 袜与鞋 -->
+  <rect x="132" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <rect x="170" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <path d="M130 516c-4 2-6 6-6 10 0 8 6 14 14 14 7 0 13-4 13-10v-14h-21Z" fill="#F7F9FC"/>
+  <path d="M190 516c4 2 6 6 6 10 0 8-6 14-14 14-7 0-13-4-13-10v-14h21Z" fill="#F7F9FC"/>
+  <path d="M126 522c2-2 4-3 6-3M132 522v14M194 522c-2-2-4-3-6-3M188 522v14" stroke="#D9DEE8" stroke-width="1.6"/>
+  <path d="M122 538c0 6 8 10 16 10s16-4 16-10v-8H122v8Z" fill="#2A3663"/>
+  <path d="M182 538c0 6 8 10 16 10s16-4 16-10v-8h-16v8Z" fill="#2A3663"/>
+  <path d="M124 536h30M184 536h30" stroke="#22335E" stroke-width="3"/>
+  <path d="M138 540h4M194 540h4" stroke="#C9A227" stroke-width="2" stroke-linecap="round"/>
+  </svg></div>
+  <div style="padding:14px 16px">
+    <div class="row"><div><div style="font-size:18px;font-weight:700">深海书简</div><div class="tiny" style="margin-top:4px">角色包 · 含连载 6 章</div></div><div style="font-size:18px;font-weight:700">¥ 29</div></div>
+    <div class="rowc" style="margin-top:12px;gap:8px"><span class="pill">永久免费基础角色不受影响</span></div>
+    <div class="tiny" style="margin-top:12px;line-height:1.8">买下的是「更多」,不是「解锁」。免费的对话、记忆、按键互动、离线底稿都在。</div>
+    <div class="rowc" style="margin-top:14px;gap:10px">
+      <div class="btn pri" style="background:#26325F;flex:1">立即购买</div>
+      <div class="btn ghost" style="flex:1">用兑换码</div>
+    </div>
+    <div class="tiny" style="margin-top:10px;text-align:center">iOS 显示「内容转赠 / 兑换码」路径(平台虚拟支付规则)</div>
+  </div>
+</div></main></template>
+<template data-page="store/free"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">商店 · 永久免费区</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 12px">永久免费区</h1>
+<p class="sub">这些不会因为你没有付费而少一点</p>
+<div class="card">
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">对话(按对话时长计量,按时间回血)</span><span class="tiny"></span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">它记得你(长期记忆)</span><span class="tiny"></span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">按键互动(两个动作)</span><span class="tiny"></span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">离线底稿(断网也在)</span><span class="tiny"></span></div>
+</div>
+<div class="card" style="margin-top:12px">
+  <h2 style="margin:0 0 8px">付费只买「更多」</h2>
+  <div class="tiny" style="line-height:1.9">更多角色包 · 更多外观 · 更多连载 · 更多信物。</div>
+</div></main></template>
+<template data-page="store/redeem"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">商店 · 兑换码</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 12px">兑换码</h1>
+<div class="card">
+  <div style="background:#FAF8F4;border:1px dashed #E4E2D9;border-radius:12px;padding:14px;text-align:center;font-size:18px;letter-spacing:3px;color:#45507B">A&nbsp;B&nbsp;C&nbsp;D&nbsp;-&nbsp;E&nbsp;F&nbsp;G&nbsp;H</div>
+  <div class="btn pri" style="background:#26325F;margin-top:14px">兑换</div>
+  <div class="tiny" style="margin-top:12px;line-height:1.8;text-align:center">实体卡上的码,这里换成线上权益;二维码在包装与说明书里都能找到。</div>
+</div></main></template>
+<template data-page="store/orders"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">商店 · 订单权益</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 12px">订单与权益</h1>
+<div class="tiny" style="text-align:center;color:#8B93AC;margin-top:60px">[P1] 支付 V2 前为只读;当前还没有订单。</div></main></template>
+<template data-page="device/bind"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">设备 · 绑定</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 6px">绑定手办</h1>
+<p class="sub">两种都可以;不强制,先领一只"虚拟手办"看看也行</p>
+<div class="card">
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9">
+    <div class="rowc"><svg class="ico" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4.4" y="4.4" width="6.4" height="6.4" rx="1"/><rect x="13.2" y="4.4" width="6.4" height="6.4" rx="1"/><rect x="4.4" y="13.2" width="6.4" height="6.4" rx="1"/><path d="M13.2 13.2h3v3h-3zM19.6 13.2v3.2M16.2 19.6h3.4M19.6 16.4v3.2"/></svg><div><div style="font-size:14.5px;font-weight:600">扫码绑定</div><div class="tiny" style="margin-top:3px">底座二维码一扫即连</div></div></div>
+    <span class="tiny">›</span>
+  </div>
+  <div class="row" style="padding:12px 0">
+    <div class="rowc"><svg class="ico" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 5.6l2.8 2.8-8.6 8.6-3.6.8.8-3.6 8.6-8.6Z"/><path d="M4.6 20.2h14.8"/></svg><div><div style="font-size:14.5px;font-weight:600">手动输入 SN</div><div class="tiny" style="margin-top:3px">底座或说明书上的序列号</div></div></div>
+    <span class="tiny">›</span>
+  </div>
+</div>
+<div class="btn ghost" style="margin-top:14px">先领一只「虚拟手办」看看</div>
+<div class="tiny" style="margin-top:12px;line-height:1.8;text-align:center">不想现在绑定也可以跳过;开箱仪式里的每一步都能断点续做。</div></main></template>
+<template data-page="device/provision"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">设备 · BLE 配网</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 12px">BLE 配网</h1>
+<p class="sub">把手机上的 WiFi 发给手办,大约 30 秒</p>
+<div class="card">
+  <div class="row" style="padding:10px 0;border-bottom:1px solid #E4E2D9"><span class="tiny">1</span><span style="flex:1;margin-left:10px;font-size:13.5px">搜索设备</span><span class="tiny">已完成</span></div>
+  <div class="row" style="padding:10px 0;border-bottom:1px solid #E4E2D9"><span class="tiny">2</span><span style="flex:1;margin-left:10px;font-size:13.5px">连接手办(蓝牙)</span><span class="tiny">已完成</span></div>
+  <div class="row" style="padding:10px 0"><span class="tiny">3</span><span style="flex:1;margin-left:10px;font-size:13.5px">写入 WiFi 名称与密码</span><span class="tiny" style="color:#3E63B0;font-weight:600">进行中</span></div>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="tiny" style="line-height:1.8">密码只进手办,不进云端;写入只走蓝牙加密通道(Security 1)。</div>
+</div></main></template>
+<template data-page="device/manual"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">设备 · 按键说明</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 12px">它的两个动作</h1>
+<p class="sub">包装卡、开箱第一句、本页,说的是同一件事</p>
+<div class="card" style="text-align:center">
+  <div style="font-size:15px;font-weight:600;margin-bottom:8px">按住说话</div>
+  <div style="height:120px;display:flex;align-items:center;justify-content:center;background:#FAF8F4;border-radius:12px;color:#3E63B0"><svg class="ico" viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="4.2" width="4" height="9" rx="2"/><path d="M6.4 11.4a5.6 5.6 0 0 0 11.2 0"/><path d="M12 17v3.2M8.8 20.2h6.4"/></svg></div>
+  <div class="tiny" style="margin-top:10px;line-height:1.7">按住头顶那颗按键,松开,它就开口。</div>
+</div>
+<div class="card" style="margin-top:12px;text-align:center">
+  <div style="font-size:15px;font-weight:600;margin-bottom:8px">播放中按键打断</div>
+  <div style="height:120px;display:flex;align-items:center;justify-content:center;background:#FAF8F4;border-radius:12px;color:#3E63B0"><svg class="ico" viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4c2 0 3.4 1.5 3.4 3.4 0 1.6-.9 2.6-1.6 3.2h3.4c1 0 1.8.8 1.8 1.8v1.6H6.6v-1.6c0-1 .8-1.8 1.8-1.8h3.4c-.7-.6-1.6-1.6-1.6-3.2 0-1.9 1.4-3.4 3.4-3.4Z"/><path d="M5.4 15.6h13.2v3.2c0 .6-.5 1.1-1.1 1.1H6.5c-.6 0-1.1-.5-1.1-1.1v-3.2Z"/><path d="M3.8 20.4h16.4"/></svg></div>
+  <div class="tiny" style="margin-top:10px;line-height:1.7">它在说的时候,按一下,它就停。</div>
+</div>
+<div class="tiny" style="margin-top:12px;line-height:1.8;text-align:center">没有更多手势了;其余一切都在手机小程序里完成。</div></main></template>
+<template data-page="device/settings"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">设备 · 设置</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 12px">设备设置</h1>
+<div class="card">
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px"><svg class="ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19.6 14.2A8.4 8.4 0 1 1 9.8 4.4a6.6 6.6 0 0 0 9.8 9.8Z"/></svg> 夜间静默(22:00–08:00)</span><span class="tiny"></span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">解绑这台手办</span><span class="tiny">重新进入绑定流程</span></div>
+</div>
+<div class="tiny" style="margin-top:12px;line-height:1.8">本页没有音量、灯效等硬件控制项——设备侧在 MVP1 冻结;需要时改由固件侧做。</div></main></template>
+<template data-page="me/index"><div class="aibadge"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12.4" cy="13" rx="7.2" ry="4.4" fill="currentColor" stroke="none"/><path d="M18.6 11.8c2-.8 3.6-2.8 4.2-4.8 1 3 .4 6.2-1.4 8.2 1 1.2 2.6 1.8 4 2.2-2.6 1.4-5.4 1-7.6-.8" fill="currentColor" stroke="none"/><circle cx="8.2" cy="11.4" r="0.9" fill="#fff" stroke="none"/></svg><span>本产品为人工智能合成语音,互动对象不是真人</span></div><main class="content">
+<div class="row" style="margin:2px 0 14px"><h1>我的</h1><span class="tiny">登录状态</span></div>
+<div class="card">
+  <div class="rowc">
+    <div class="avatar" style="width:58px;height:58px;flex:none"><svg viewBox="60 2 200 192" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="角色立绘:深蓝女仆鲸娘">
+  <defs>
+    <linearGradient id="m-hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="0.55" stop-color="#4E6FB6"/><stop offset="1" stop-color="#9CD2EF"/>
+    </linearGradient>
+    <linearGradient id="m-iris" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BFE8F6"/><stop offset="0.55" stop-color="#4E7EC0"/><stop offset="1" stop-color="#22335E"/>
+    </linearGradient>
+    <linearGradient id="m-tail" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="1" stop-color="#7FB9DC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 鲸鱼尾(身后,向右扫:尾鳍明显探出裙外) -->
+  <path d="M214 380c40-16 72-46 92-88-4 42-12 82-30 118-14 26-32 40-52 44-11 2-19-7-17-18 2-22 3-40 7-56Z" fill="url(#m-tail)"/>
+  <path d="M256 452c10 4 19 11 26 20-12 7-28 7-40-2-9-7-11-17-7-26 5-9 14-9 21 8Z" fill="url(#m-tail)" opacity="0.92"/>
+
+  <!-- 后发(到腰的长卷发) -->
+  <path d="M160 64c-52 0-76 36-74 84 1 30-4 66-18 108-6 18-4 30 8 40 10 8 22 6 28-4 4-8 4-18 0-28-2 24 6 44 22 52 16 8 36 4 48-4 8-6 12-16 12-26-6-40-10-80-8-118 1-28-6-60-18-104Z" fill="url(#m-hair)"/>
+  <path d="M160 64c52 0 76 36 74 84-1 30 4 66 18 108 6 18 4 30-8 40-10 8-22 6-28-4-4-8-4-18 0-28 2 24-6 44-22 52-16 8-36 4-48-4-8-6-12-16-12-26 6-40 10-80 8-118-1-28 6-60 18-104Z" fill="url(#m-hair)"/>
+
+  <!-- 鲸鳍耳(两侧,向外后) -->
+  <path d="M106 120c-16-7-32-2-40 13 10 1 22 5 31 13 5-5 9-14 9-26Z" fill="#2A3663"/>
+  <path d="M104 124c-12-4-24 0-30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M214 120c16-7 32-2 40 13-10 1-22 5-31 13-5-5-9-14-9-26Z" fill="#2A3663"/>
+  <path d="M216 124c12-4 24 0 30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+
+  <!-- 女仆头饰 -->
+  <path d="M94 92c4-20 30-32 66-32s62 12 66 32c-8-8-20-10-20-10-6-6-16-8-20-8s-14 2-20 8c0 0-12 2-20 10Z" fill="#F7F9FC"/>
+  <path d="M94 92c6-6 12-8 18-8M226 92c-6-6-12-8-18-8M112 82c4-4 10-6 16-7M208 82c-4-4-10-6-16-7M132 76c4-3 8-4 12-4M188 76c-4-3-8-4-12-4" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+  <path d="M94 92c-4 8-2 16 2 22 6-6 8-14 6-22ZM226 92c4 8 2 16-2 22-6-6-8-14-6-22Z" fill="#F7F9FC"/>
+  <!-- 头饰侧蝴蝶结 -->
+  <g transform="translate(226,104)"><path d="M0 0l14-7c4 3 4 9 0 12L0 6c-4 3-4 7 0 10l14-7c4-3 4-9 0-12L0 0Z" fill="#7EC4E8"/><circle cx="0" cy="3" r="3" fill="#4E7EC0"/></g>
+
+  <!-- 头顶卷天线(鲸鱼喷水) -->
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#2A3663" stroke-width="11" stroke-linecap="round"/>
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#5B7FC4" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- 颈 -->
+  <rect x="150" y="160" width="20" height="26" rx="9" fill="#F0CBB4"/>
+  <!-- 肩袖与臂 -->
+  <path d="M114 178c-18 6-28 20-32 42-3 16 0 34 6 52l16-4c-4-16-4-32-2-46 2-12 6-22 12-30Z" fill="#2A3663"/>
+  <path d="M206 178c18 6 28 20 32 42 3 16 0 34-6 52l-16-4c4-16 4-32 2-46-2-12-6-22-12-30Z" fill="#2A3663"/>
+  <path d="M84 262c2 8 4 12 8 16 5 4 10 4 14 0l-4-16-16 4Z" fill="#F0CBB4"/>
+  <path d="M236 262c-2 8-4 12-8 16-5 4-10 4-14 0l4-16 16 4Z" fill="#F0CBB4"/>
+  <path d="M84 258c-2 4 0 10 4 12 4-4 8-8 10-12l-12-4Z" fill="#F7F9FC"/>
+  <path d="M236 258c2 4 0 10-4 12-4-4-8-8-10-12l12-4Z" fill="#F7F9FC"/>
+
+  <!-- 脸 -->
+  <path d="M160 78c-32 0-48 24-48 54 0 30 20 50 48 50s48-20 48-50c0-30-16-54-48-54Z" fill="#FBE4D6"/>
+  <!-- 刘海 -->
+  <path d="M160 74c-34 0-52 24-50 50 8-18 20-24 30-34 6 14 20 18 30 18 12 0 22-6 26-12-2-14-16-22-36-22Z" fill="url(#m-hair)"/>
+  <path d="M112 104c-2 6-3 12-3 18 2 8 6 10 10 12-1-6-2-12-1-18M208 104c2 6 3 12 3 18-2 8-6 10-10 12 1-6 2-12 1-18" fill="url(#m-hair)"/>
+
+  <!-- 眼 -->
+  <ellipse cx="138" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="138" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="141" cy="126" r="2.8" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="185" cy="126" r="2.8" fill="#FFFFFF"/>
+  <path d="M128 116c4-3 9-4 13-3M177 113c4-1 9 0 13 3" stroke="#22335E" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M130 112c3-2 8-2 11 0M179 112c3-2 8-2 11 0" stroke="#5B7FA8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="128" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <ellipse cx="192" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <path d="M154 152c2 4 10 4 12 0" stroke="#B4645C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+
+  <!-- 胸衣:白领 + 深蓝领结 + 金扣 -->
+  <path d="M160 168c-26 0-42 14-46 34 14 8 30 10 46 10s32-2 46-10c-4-20-20-34-46-34Z" fill="#F7F9FC"/>
+  <path d="M160 172c-24 0-38 12-42 28 14 8 28 10 42 10s28-2 42-10c-4-16-18-28-42-28Z" fill="#2A3663"/>
+  <path d="M146 180h-12c-3 0-4 4-2 6l12 8c3 1 6 0 7-3l-6-11ZM174 180h12c3 0 4 4 2 6l-12 8c-3 1-6 0-7-3l6-11Z" fill="#22335E"/>
+  <circle cx="160" cy="186" r="3.2" fill="#C9A227"/>
+  <circle cx="155" cy="196" r="2" fill="#C9A227"/><circle cx="165" cy="196" r="2" fill="#C9A227"/>
+  <circle cx="155" cy="204" r="2" fill="#C9A227"/><circle cx="165" cy="204" r="2" fill="#C9A227"/>
+
+  <!-- 裙:深蓝长裙 + 白围裙 + 鲸刺绣 + 金蝴蝶结 + 白蕾丝下摆 -->
+  <path d="M112 206c-4 26-12 90-18 150-4 40-8 76-6 100 4 24 30 36 72 36s68-12 72-36c2-24-2-60-6-100-6-60-14-124-18-150-16-8-32-10-48-10s-32 2-48 10Z" fill="#2A3663"/>
+  <!-- 裙底刺绣(金线) -->
+  <path d="M96 452c6-2 12 0 16 4-4 4-12 5-16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M224 452c-6-2-12 0-16 4 4 4 12 5 16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M110 470c8 6 18 8 30 8M210 470c-8 6-18 8-30 8" stroke="#C9A227" stroke-width="1.4" fill="none" opacity="0.8"/>
+  <!-- 白围裙(比裙窄,两侧露出深蓝裙) -->
+  <path d="M134 212c-3 20-6 70-7 120-1 44-1 78 4 100 4 12 14 16 29 16s25-4 29-16c5-22 5-56 4-100-1-50-4-100-7-120-9-5-17-7-26-7s-17 2-26 7Z" fill="#F7F9FC"/>
+  <path d="M116 412c-4 2-6 8-2 12 4-4 8-4 10 0 2-6 6-8 10-6 2 2 2 6 0 8-8 8-22 8-28-2-2-4 0-8 4-8" fill="#EDF0F6" opacity="0"/>
+  <path d="M120 420c6 6 20 8 40 8s34-2 40-8" stroke="#D9DEE8" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- 围裙鲸鱼刺绣 -->
+  <g transform="translate(160,330)"><ellipse cx="0" cy="4" rx="16" ry="9" fill="#2A3663"/><path d="M14 1c4-1 7-3 8-6 2 4 1 8-2 10 2 1 4 2 6 3-4 1-8 1-11-1Z" fill="#2A3663"/><circle cx="-7" cy="2" r="1.4" fill="#F7F9FC"/><path d="M-2 -6c1-3 3-5 6-6-1 3-1 6 1 8" fill="#4E7EC0"/></g>
+
+  <!-- 白蕾丝下摆 -->
+  <path d="M86 452c2 18 12 30 34 34-8 8-22 8-30-2-6-8-8-16-8-28ZM234 452c-2 18-12 30-34 34 8 8 22 8 30-2 6-8 8-16 8-28Z" fill="#F7F9FC"/>
+  <path d="M90 456c14 8 44 12 70 12s56-4 70-12" stroke="#F7F9FC" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M96 458c8 5 22 8 30 9M224 458c-8 5-22 8-30 9" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+
+  <!-- 袜与鞋 -->
+  <rect x="132" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <rect x="170" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <path d="M130 516c-4 2-6 6-6 10 0 8 6 14 14 14 7 0 13-4 13-10v-14h-21Z" fill="#F7F9FC"/>
+  <path d="M190 516c4 2 6 6 6 10 0 8-6 14-14 14-7 0-13-4-13-10v-14h21Z" fill="#F7F9FC"/>
+  <path d="M126 522c2-2 4-3 6-3M132 522v14M194 522c-2-2-4-3-6-3M188 522v14" stroke="#D9DEE8" stroke-width="1.6"/>
+  <path d="M122 538c0 6 8 10 16 10s16-4 16-10v-8H122v8Z" fill="#2A3663"/>
+  <path d="M182 538c0 6 8 10 16 10s16-4 16-10v-8h-16v8Z" fill="#2A3663"/>
+  <path d="M124 536h30M184 536h30" stroke="#22335E" stroke-width="3"/>
+  <path d="M138 540h4M194 540h4" stroke="#C9A227" stroke-width="2" stroke-linecap="round"/>
+  </svg></div>
+    <div style="flex:1">
+      <div style="font-size:16px;font-weight:600">你</div>
+      <div class="tiny" style="margin-top:4px">已绑定 1 只手办 · 微信登录</div>
+    </div>
+  </div>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px"><svg class="ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4.4" y="9.2" width="15.2" height="4.4" rx="1"/><path d="M5.6 13.6v6.4c0 .8.6 1.4 1.4 1.4h10c.8 0 1.4-.6 1.4-1.4v-6.4"/><path d="M12 9.2v12.2"/><path d="M12 9.2c-2.6 0-4.6-1.4-4.6-3s1.6-2.4 3-1.6c1 .6 1.6 2 1.6 4.6 0-2.6.6-4 1.6-4.6 1.4-.8 3 0 3 1.6s-2 3-4.6 3Z"/></svg> 订阅与兑换</span><span class="tiny"></span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px"><svg class="ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.4l2.3 4.7 5.1.7-3.7 3.6.9 5.1-4.6-2.4-4.6 2.4.9-5.1L4.6 9.8l5.1-.7Z"/></svg> 服务连续性承诺</span><span class="tiny"></span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px"><svg class="ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.6"/><path d="M12 3.8v2.2M12 18v2.2M4.9 12H2.7M21.3 12h-2.2M6.9 6.9 5.3 5.3M18.7 18.7l-1.6-1.6M17.1 6.9l1.6-1.6M5.3 18.7l1.6-1.6"/></svg> 通知与隐私</span><span class="tiny"></span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px"><svg class="ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M9.7 9.6c.2-1.3 1.2-2.1 2.5-2.1 1.4 0 2.4.9 2.4 2.1 0 1-.5 1.5-1.4 2.1-.8.5-1.1.8-1.1 1.6"/><circle cx="12.1" cy="16.6" r="0.9" fill="currentColor" stroke="none"/></svg> 帮助与反馈</span><span class="tiny"></span></div>
+</div>
+<div class="card" style="margin-top:12px">
+  <a href="#/me/exit" style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13.5px;color:#A1463F">退出与删除</span><span class="tiny">›</span></a>
+</div>
+<div class="tiny" style="margin-top:18px;text-align:center;line-height:1.7">《用户协议》《隐私政策》<br>互动对象为人工智能,不是真人</div></main><nav class="tabbar"><a class="tab " href="#/hand/today"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4c2 0 3.4 1.5 3.4 3.4 0 1.6-.9 2.6-1.6 3.2h3.4c1 0 1.8.8 1.8 1.8v1.6H6.6v-1.6c0-1 .8-1.8 1.8-1.8h3.4c-.7-.6-1.6-1.6-1.6-3.2 0-1.9 1.4-3.4 3.4-3.4Z"/><path d="M5.4 15.6h13.2v3.2c0 .6-.5 1.1-1.1 1.1H6.5c-.6 0-1.1-.5-1.1-1.1v-3.2Z"/><path d="M3.8 20.4h16.4"/></svg><span>手办</span></a><a class="tab " href="#/archive/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.2c0-.9.7-1.6 1.6-1.6h3.1l1.5 1.9h7.2c.9 0 1.6.7 1.6 1.6v8.5c0 .9-.7 1.6-1.6 1.6H5.6c-.9 0-1.6-.7-1.6-1.6V7.2Z"/><path d="M4 11.2h16"/></svg><span>档案</span></a><a class="tab " href="#/community/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.4" cy="9.6" r="3"/><path d="M4.4 18.6c0-2.5 2.2-4.2 5-4.2s5 1.7 5 4.2"/><path d="M16 7.4c1.6.3 2.7 1.6 2.7 3.2 0 2-.9 3-2.2 3.6"/><path d="M17.2 14.7c1.9.4 3.2 1.7 3.2 3.9"/></svg><span>社区</span></a><a class="tab " href="#/store/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 8.4h12.8l1.1 10.2c.1.9-.6 1.7-1.6 1.7H6.1c-1 0-1.7-.8-1.6-1.7L5.6 8.4Z"/><path d="M9.1 10.2V7.6a2.9 2.9 0 0 1 5.8 0v2.6"/></svg><span>商店</span></a><a class="tab on" href="#/me/index"><svg class="ico" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.6" r="3.4"/><path d="M5.6 19.4c0-3 2.9-5 6.4-5s6.4 2 6.4 5"/></svg><span>我的</span></a></nav></template>
+<template data-page="me/promise"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">我的 · 服务连续性承诺</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:21px;margin:2px 0 6px">我们承诺什么,不承诺什么</h1>
+<p class="sub">这一页的内容,和包装里的卡片逐字一致。</p>
+<div class="card">
+  <div class="cap">可承诺的三件事</div>
+  <div style="margin-top:12px">
+    <div style="font-size:15px;font-weight:700">按住才听</div>
+    <div class="tiny" style="margin-top:5px;line-height:1.7">不按住,麦克风不工作。</div>
+  </div>
+  <div class="rule" style="margin:13px 0"></div>
+  <div>
+    <div style="font-size:15px;font-weight:700">它记得你,而且记忆永久免费</div>
+    <div class="tiny" style="margin-top:5px;line-height:1.7">记忆可查、可改、可删;不进任何付费口径。</div>
+  </div>
+  <div class="rule" style="margin:13px 0"></div>
+  <div>
+    <div style="font-size:15px;font-weight:700">就算有一天服务停了,它还是一尊手办</div>
+    <div class="tiny" style="margin-top:5px;line-height:1.7">造型、收藏、离线底稿、陪伴计数、底座刻痕都留在你手里。不承诺停服后仍会说话。</div>
+  </div>
+</div>
+<div class="card" style="margin-top:12px;background:#F1EFE9;border-color:#E3DFD5">
+  <div class="cap">停服后失效的东西</div>
+  <div style="margin-top:11px;font-size:13.5px;line-height:2;color:#4A505E">对话 · 主动开口 · 内容更新 · 社区 · 订阅权益</div>
+  <div class="tiny" style="margin-top:12px;line-height:1.8">我们会在停服前 12 个月通知,并把你的档案交付给你;<br>在那之前,订阅只卖「更多」,不卖「别失去」。</div>
+</div>
+<div class="card" style="margin-top:12px"><div class="row"><span class="tiny">服务连续性与数据导出</span><span class="tiny"><svg class="ico" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M9.7 9.6c.2-1.3 1.2-2.1 2.5-2.1 1.4 0 2.4.9 2.4 2.1 0 1-.5 1.5-1.4 2.1-.8.5-1.1.8-1.1 1.6"/><circle cx="12.1" cy="16.6" r="0.9" fill="currentColor" stroke="none"/></svg></span></div></div></main></template>
+<template data-page="me/exit"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">我的 · 退出与删除</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 12px">退出与删除</h1>
+<p class="sub">你想走的每一步,都应该是安静的</p>
+<div class="card">
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">退出登录</span><span class="tiny">不影响你在其它设备上的使用</span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">删除这台手办与角色</span><span class="tiny">会同时清除它在服务器上的记忆与档案</span></div>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="tiny" style="line-height:1.8">我们不会用「再想想」拦住你,也不会在你删完之后把数据留在你拿不到的地方。</div>
+</div></main></template>
+<template data-page="me/settings"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">我的 · 通知与隐私</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:20px;margin:2px 0 12px">通知与隐私</h1>
+<div class="card">
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">新内容提醒</span><span class="tiny">每周一次 · 不推广告</span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">授权管理</span><span class="tiny">相机 / 蓝牙 / 麦克风</span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">原声与录音的使用</span><span class="tiny">默认不用于训练</span></div>
+</div></main></template>
+<template data-page="me/help"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">我的 · 帮助</span><span class="shright"></span></div><main class="content"><div class="tiny" style="text-align:center;color:#8B93AC;margin-top:80px">[P1] 帮助与反馈,二期补齐。</div></main></template>
+<template data-page="onboarding/intro"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">开箱 · 装备须知</span><span class="shright"></span></div><main class="content">
+<div style="height:140px;display:flex;flex-direction:column;justify-content:center">
+  <div class="tiny" style="letter-spacing:2px;color:#8B93AC">装备须知</div>
+  <h1 style="font-size:24px;margin-top:10px;line-height:1.4">它到了之后,<br>你会怎么用</h1>
+</div>
+<div class="card">
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">永久免费,不用花钱也能用</span><span class="tiny"></span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">需要付费的,只是「更多」</span><span class="tiny"></span></div>
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9"><span style="font-size:13.5px">互动对象是人工智能,不是真人</span><span class="tiny"></span></div>
+</div>
+<div class="btn pri" style="background:#26325F;margin-top:16px">开始</div>
+<div class="tiny" style="margin-top:10px;text-align:center">每一步都可以跳过;断点续做。</div></main></template>
+<template data-page="onboarding/bind"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">开箱 · 绑定</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:21px;margin:2px 0 10px">先把你的手办连上</h1>
+<p class="sub">连不上也没关系,可以跳过这一步先去认主</p>
+
+<h1 style="font-size:20px;margin:2px 0 6px">绑定手办</h1>
+<p class="sub">两种都可以;不强制,先领一只"虚拟手办"看看也行</p>
+<div class="card">
+  <div class="row" style="padding:12px 0;border-bottom:1px solid #E4E2D9">
+    <div class="rowc"><svg class="ico" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4.4" y="4.4" width="6.4" height="6.4" rx="1"/><rect x="13.2" y="4.4" width="6.4" height="6.4" rx="1"/><rect x="4.4" y="13.2" width="6.4" height="6.4" rx="1"/><path d="M13.2 13.2h3v3h-3zM19.6 13.2v3.2M16.2 19.6h3.4M19.6 16.4v3.2"/></svg><div><div style="font-size:14.5px;font-weight:600">扫码绑定</div><div class="tiny" style="margin-top:3px">底座二维码一扫即连</div></div></div>
+    <span class="tiny">›</span>
+  </div>
+  <div class="row" style="padding:12px 0">
+    <div class="rowc"><svg class="ico" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 5.6l2.8 2.8-8.6 8.6-3.6.8.8-3.6 8.6-8.6Z"/><path d="M4.6 20.2h14.8"/></svg><div><div style="font-size:14.5px;font-weight:600">手动输入 SN</div><div class="tiny" style="margin-top:3px">底座或说明书上的序列号</div></div></div>
+    <span class="tiny">›</span>
+  </div>
+</div>
+<div class="btn ghost" style="margin-top:14px">先领一只「虚拟手办」看看</div>
+<div class="tiny" style="margin-top:12px;line-height:1.8;text-align:center">不想现在绑定也可以跳过;开箱仪式里的每一步都能断点续做。</div>
+<div class="btn ghost" style="margin-top:16px">跳过,先去认主</div></main></template>
+<template data-page="onboarding/adopt"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">开箱 · 认主</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:21px;margin:2px 0 10px">给它起个名字</h1>
+<p class="sub">它把第一次叫出这个名字,当成你们的开始</p>
+<div class="card" style="text-align:center">
+  <div class="avatar" style="width:92px;height:92px;flex:none"><svg viewBox="60 2 200 192" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="角色立绘:深蓝女仆鲸娘">
+  <defs>
+    <linearGradient id="m-hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="0.55" stop-color="#4E6FB6"/><stop offset="1" stop-color="#9CD2EF"/>
+    </linearGradient>
+    <linearGradient id="m-iris" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BFE8F6"/><stop offset="0.55" stop-color="#4E7EC0"/><stop offset="1" stop-color="#22335E"/>
+    </linearGradient>
+    <linearGradient id="m-tail" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="1" stop-color="#7FB9DC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 鲸鱼尾(身后,向右扫:尾鳍明显探出裙外) -->
+  <path d="M214 380c40-16 72-46 92-88-4 42-12 82-30 118-14 26-32 40-52 44-11 2-19-7-17-18 2-22 3-40 7-56Z" fill="url(#m-tail)"/>
+  <path d="M256 452c10 4 19 11 26 20-12 7-28 7-40-2-9-7-11-17-7-26 5-9 14-9 21 8Z" fill="url(#m-tail)" opacity="0.92"/>
+
+  <!-- 后发(到腰的长卷发) -->
+  <path d="M160 64c-52 0-76 36-74 84 1 30-4 66-18 108-6 18-4 30 8 40 10 8 22 6 28-4 4-8 4-18 0-28-2 24 6 44 22 52 16 8 36 4 48-4 8-6 12-16 12-26-6-40-10-80-8-118 1-28-6-60-18-104Z" fill="url(#m-hair)"/>
+  <path d="M160 64c52 0 76 36 74 84-1 30 4 66 18 108 6 18 4 30-8 40-10 8-22 6-28-4-4-8-4-18 0-28 2 24-6 44-22 52-16 8-36 4-48-4-8-6-12-16-12-26 6-40 10-80 8-118-1-28 6-60 18-104Z" fill="url(#m-hair)"/>
+
+  <!-- 鲸鳍耳(两侧,向外后) -->
+  <path d="M106 120c-16-7-32-2-40 13 10 1 22 5 31 13 5-5 9-14 9-26Z" fill="#2A3663"/>
+  <path d="M104 124c-12-4-24 0-30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M214 120c16-7 32-2 40 13-10 1-22 5-31 13-5-5-9-14-9-26Z" fill="#2A3663"/>
+  <path d="M216 124c12-4 24 0 30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+
+  <!-- 女仆头饰 -->
+  <path d="M94 92c4-20 30-32 66-32s62 12 66 32c-8-8-20-10-20-10-6-6-16-8-20-8s-14 2-20 8c0 0-12 2-20 10Z" fill="#F7F9FC"/>
+  <path d="M94 92c6-6 12-8 18-8M226 92c-6-6-12-8-18-8M112 82c4-4 10-6 16-7M208 82c-4-4-10-6-16-7M132 76c4-3 8-4 12-4M188 76c-4-3-8-4-12-4" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+  <path d="M94 92c-4 8-2 16 2 22 6-6 8-14 6-22ZM226 92c4 8 2 16-2 22-6-6-8-14-6-22Z" fill="#F7F9FC"/>
+  <!-- 头饰侧蝴蝶结 -->
+  <g transform="translate(226,104)"><path d="M0 0l14-7c4 3 4 9 0 12L0 6c-4 3-4 7 0 10l14-7c4-3 4-9 0-12L0 0Z" fill="#7EC4E8"/><circle cx="0" cy="3" r="3" fill="#4E7EC0"/></g>
+
+  <!-- 头顶卷天线(鲸鱼喷水) -->
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#2A3663" stroke-width="11" stroke-linecap="round"/>
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#5B7FC4" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- 颈 -->
+  <rect x="150" y="160" width="20" height="26" rx="9" fill="#F0CBB4"/>
+  <!-- 肩袖与臂 -->
+  <path d="M114 178c-18 6-28 20-32 42-3 16 0 34 6 52l16-4c-4-16-4-32-2-46 2-12 6-22 12-30Z" fill="#2A3663"/>
+  <path d="M206 178c18 6 28 20 32 42 3 16 0 34-6 52l-16-4c4-16 4-32 2-46-2-12-6-22-12-30Z" fill="#2A3663"/>
+  <path d="M84 262c2 8 4 12 8 16 5 4 10 4 14 0l-4-16-16 4Z" fill="#F0CBB4"/>
+  <path d="M236 262c-2 8-4 12-8 16-5 4-10 4-14 0l4-16 16 4Z" fill="#F0CBB4"/>
+  <path d="M84 258c-2 4 0 10 4 12 4-4 8-8 10-12l-12-4Z" fill="#F7F9FC"/>
+  <path d="M236 258c2 4 0 10-4 12-4-4-8-8-10-12l12-4Z" fill="#F7F9FC"/>
+
+  <!-- 脸 -->
+  <path d="M160 78c-32 0-48 24-48 54 0 30 20 50 48 50s48-20 48-50c0-30-16-54-48-54Z" fill="#FBE4D6"/>
+  <!-- 刘海 -->
+  <path d="M160 74c-34 0-52 24-50 50 8-18 20-24 30-34 6 14 20 18 30 18 12 0 22-6 26-12-2-14-16-22-36-22Z" fill="url(#m-hair)"/>
+  <path d="M112 104c-2 6-3 12-3 18 2 8 6 10 10 12-1-6-2-12-1-18M208 104c2 6 3 12 3 18-2 8-6 10-10 12 1-6 2-12 1-18" fill="url(#m-hair)"/>
+
+  <!-- 眼 -->
+  <ellipse cx="138" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="138" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="141" cy="126" r="2.8" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="185" cy="126" r="2.8" fill="#FFFFFF"/>
+  <path d="M128 116c4-3 9-4 13-3M177 113c4-1 9 0 13 3" stroke="#22335E" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M130 112c3-2 8-2 11 0M179 112c3-2 8-2 11 0" stroke="#5B7FA8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="128" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <ellipse cx="192" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <path d="M154 152c2 4 10 4 12 0" stroke="#B4645C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+
+  <!-- 胸衣:白领 + 深蓝领结 + 金扣 -->
+  <path d="M160 168c-26 0-42 14-46 34 14 8 30 10 46 10s32-2 46-10c-4-20-20-34-46-34Z" fill="#F7F9FC"/>
+  <path d="M160 172c-24 0-38 12-42 28 14 8 28 10 42 10s28-2 42-10c-4-16-18-28-42-28Z" fill="#2A3663"/>
+  <path d="M146 180h-12c-3 0-4 4-2 6l12 8c3 1 6 0 7-3l-6-11ZM174 180h12c3 0 4 4 2 6l-12 8c-3 1-6 0-7-3l6-11Z" fill="#22335E"/>
+  <circle cx="160" cy="186" r="3.2" fill="#C9A227"/>
+  <circle cx="155" cy="196" r="2" fill="#C9A227"/><circle cx="165" cy="196" r="2" fill="#C9A227"/>
+  <circle cx="155" cy="204" r="2" fill="#C9A227"/><circle cx="165" cy="204" r="2" fill="#C9A227"/>
+
+  <!-- 裙:深蓝长裙 + 白围裙 + 鲸刺绣 + 金蝴蝶结 + 白蕾丝下摆 -->
+  <path d="M112 206c-4 26-12 90-18 150-4 40-8 76-6 100 4 24 30 36 72 36s68-12 72-36c2-24-2-60-6-100-6-60-14-124-18-150-16-8-32-10-48-10s-32 2-48 10Z" fill="#2A3663"/>
+  <!-- 裙底刺绣(金线) -->
+  <path d="M96 452c6-2 12 0 16 4-4 4-12 5-16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M224 452c-6-2-12 0-16 4 4 4 12 5 16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M110 470c8 6 18 8 30 8M210 470c-8 6-18 8-30 8" stroke="#C9A227" stroke-width="1.4" fill="none" opacity="0.8"/>
+  <!-- 白围裙(比裙窄,两侧露出深蓝裙) -->
+  <path d="M134 212c-3 20-6 70-7 120-1 44-1 78 4 100 4 12 14 16 29 16s25-4 29-16c5-22 5-56 4-100-1-50-4-100-7-120-9-5-17-7-26-7s-17 2-26 7Z" fill="#F7F9FC"/>
+  <path d="M116 412c-4 2-6 8-2 12 4-4 8-4 10 0 2-6 6-8 10-6 2 2 2 6 0 8-8 8-22 8-28-2-2-4 0-8 4-8" fill="#EDF0F6" opacity="0"/>
+  <path d="M120 420c6 6 20 8 40 8s34-2 40-8" stroke="#D9DEE8" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- 围裙鲸鱼刺绣 -->
+  <g transform="translate(160,330)"><ellipse cx="0" cy="4" rx="16" ry="9" fill="#2A3663"/><path d="M14 1c4-1 7-3 8-6 2 4 1 8-2 10 2 1 4 2 6 3-4 1-8 1-11-1Z" fill="#2A3663"/><circle cx="-7" cy="2" r="1.4" fill="#F7F9FC"/><path d="M-2 -6c1-3 3-5 6-6-1 3-1 6 1 8" fill="#4E7EC0"/></g>
+
+  <!-- 白蕾丝下摆 -->
+  <path d="M86 452c2 18 12 30 34 34-8 8-22 8-30-2-6-8-8-16-8-28ZM234 452c-2 18-12 30-34 34 8 8 22 8 30-2 6-8 8-16 8-28Z" fill="#F7F9FC"/>
+  <path d="M90 456c14 8 44 12 70 12s56-4 70-12" stroke="#F7F9FC" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M96 458c8 5 22 8 30 9M224 458c-8 5-22 8-30 9" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+
+  <!-- 袜与鞋 -->
+  <rect x="132" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <rect x="170" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <path d="M130 516c-4 2-6 6-6 10 0 8 6 14 14 14 7 0 13-4 13-10v-14h-21Z" fill="#F7F9FC"/>
+  <path d="M190 516c4 2 6 6 6 10 0 8-6 14-14 14-7 0-13-4-13-10v-14h21Z" fill="#F7F9FC"/>
+  <path d="M126 522c2-2 4-3 6-3M132 522v14M194 522c-2-2-4-3-6-3M188 522v14" stroke="#D9DEE8" stroke-width="1.6"/>
+  <path d="M122 538c0 6 8 10 16 10s16-4 16-10v-8H122v8Z" fill="#2A3663"/>
+  <path d="M182 538c0 6 8 10 16 10s16-4 16-10v-8h-16v8Z" fill="#2A3663"/>
+  <path d="M124 536h30M184 536h30" stroke="#22335E" stroke-width="3"/>
+  <path d="M138 540h4M194 540h4" stroke="#C9A227" stroke-width="2" stroke-linecap="round"/>
+  </svg></div>
+  <div style="margin-top:14px;font-size:13px;color:#8B93AC">现在,它还没有名字</div>
+  <div style="margin-top:14px;background:#FAF8F4;border-radius:12px;padding:12px;font-size:16px">小鲸</div>
+</div>
+<div class="btn pri" style="background:#26325F;margin-top:16px">就这个</div>
+<div class="tiny" style="margin-top:10px;text-align:center">按下去,它会用这个名字叫你。</div></main></template>
+<template data-page="onboarding/first-card"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">开箱 · 第一张角色卡</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:21px;margin:2px 0 10px">第一张角色卡</h1>
+<p class="sub">它免费进你的收藏柜,永远属于你</p>
+<div class="card" style="padding:10px">
+  <div class="square" style="aspect-ratio:1/0.9"><svg viewBox="20 4 280 302" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="角色立绘:深蓝女仆鲸娘">
+  <defs>
+    <linearGradient id="m-hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="0.55" stop-color="#4E6FB6"/><stop offset="1" stop-color="#9CD2EF"/>
+    </linearGradient>
+    <linearGradient id="m-iris" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BFE8F6"/><stop offset="0.55" stop-color="#4E7EC0"/><stop offset="1" stop-color="#22335E"/>
+    </linearGradient>
+    <linearGradient id="m-tail" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="1" stop-color="#7FB9DC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 鲸鱼尾(身后,向右扫:尾鳍明显探出裙外) -->
+  <path d="M214 380c40-16 72-46 92-88-4 42-12 82-30 118-14 26-32 40-52 44-11 2-19-7-17-18 2-22 3-40 7-56Z" fill="url(#m-tail)"/>
+  <path d="M256 452c10 4 19 11 26 20-12 7-28 7-40-2-9-7-11-17-7-26 5-9 14-9 21 8Z" fill="url(#m-tail)" opacity="0.92"/>
+
+  <!-- 后发(到腰的长卷发) -->
+  <path d="M160 64c-52 0-76 36-74 84 1 30-4 66-18 108-6 18-4 30 8 40 10 8 22 6 28-4 4-8 4-18 0-28-2 24 6 44 22 52 16 8 36 4 48-4 8-6 12-16 12-26-6-40-10-80-8-118 1-28-6-60-18-104Z" fill="url(#m-hair)"/>
+  <path d="M160 64c52 0 76 36 74 84-1 30 4 66 18 108 6 18 4 30-8 40-10 8-22 6-28-4-4-8-4-18 0-28 2 24-6 44-22 52-16 8-36 4-48-4-8-6-12-16-12-26 6-40 10-80 8-118-1-28 6-60 18-104Z" fill="url(#m-hair)"/>
+
+  <!-- 鲸鳍耳(两侧,向外后) -->
+  <path d="M106 120c-16-7-32-2-40 13 10 1 22 5 31 13 5-5 9-14 9-26Z" fill="#2A3663"/>
+  <path d="M104 124c-12-4-24 0-30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M214 120c16-7 32-2 40 13-10 1-22 5-31 13-5-5-9-14-9-26Z" fill="#2A3663"/>
+  <path d="M216 124c12-4 24 0 30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+
+  <!-- 女仆头饰 -->
+  <path d="M94 92c4-20 30-32 66-32s62 12 66 32c-8-8-20-10-20-10-6-6-16-8-20-8s-14 2-20 8c0 0-12 2-20 10Z" fill="#F7F9FC"/>
+  <path d="M94 92c6-6 12-8 18-8M226 92c-6-6-12-8-18-8M112 82c4-4 10-6 16-7M208 82c-4-4-10-6-16-7M132 76c4-3 8-4 12-4M188 76c-4-3-8-4-12-4" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+  <path d="M94 92c-4 8-2 16 2 22 6-6 8-14 6-22ZM226 92c4 8 2 16-2 22-6-6-8-14-6-22Z" fill="#F7F9FC"/>
+  <!-- 头饰侧蝴蝶结 -->
+  <g transform="translate(226,104)"><path d="M0 0l14-7c4 3 4 9 0 12L0 6c-4 3-4 7 0 10l14-7c4-3 4-9 0-12L0 0Z" fill="#7EC4E8"/><circle cx="0" cy="3" r="3" fill="#4E7EC0"/></g>
+
+  <!-- 头顶卷天线(鲸鱼喷水) -->
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#2A3663" stroke-width="11" stroke-linecap="round"/>
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#5B7FC4" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- 颈 -->
+  <rect x="150" y="160" width="20" height="26" rx="9" fill="#F0CBB4"/>
+  <!-- 肩袖与臂 -->
+  <path d="M114 178c-18 6-28 20-32 42-3 16 0 34 6 52l16-4c-4-16-4-32-2-46 2-12 6-22 12-30Z" fill="#2A3663"/>
+  <path d="M206 178c18 6 28 20 32 42 3 16 0 34-6 52l-16-4c4-16 4-32 2-46-2-12-6-22-12-30Z" fill="#2A3663"/>
+  <path d="M84 262c2 8 4 12 8 16 5 4 10 4 14 0l-4-16-16 4Z" fill="#F0CBB4"/>
+  <path d="M236 262c-2 8-4 12-8 16-5 4-10 4-14 0l4-16 16 4Z" fill="#F0CBB4"/>
+  <path d="M84 258c-2 4 0 10 4 12 4-4 8-8 10-12l-12-4Z" fill="#F7F9FC"/>
+  <path d="M236 258c2 4 0 10-4 12-4-4-8-8-10-12l12-4Z" fill="#F7F9FC"/>
+
+  <!-- 脸 -->
+  <path d="M160 78c-32 0-48 24-48 54 0 30 20 50 48 50s48-20 48-50c0-30-16-54-48-54Z" fill="#FBE4D6"/>
+  <!-- 刘海 -->
+  <path d="M160 74c-34 0-52 24-50 50 8-18 20-24 30-34 6 14 20 18 30 18 12 0 22-6 26-12-2-14-16-22-36-22Z" fill="url(#m-hair)"/>
+  <path d="M112 104c-2 6-3 12-3 18 2 8 6 10 10 12-1-6-2-12-1-18M208 104c2 6 3 12 3 18-2 8-6 10-10 12 1-6 2-12 1-18" fill="url(#m-hair)"/>
+
+  <!-- 眼 -->
+  <ellipse cx="138" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="138" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="141" cy="126" r="2.8" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="185" cy="126" r="2.8" fill="#FFFFFF"/>
+  <path d="M128 116c4-3 9-4 13-3M177 113c4-1 9 0 13 3" stroke="#22335E" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M130 112c3-2 8-2 11 0M179 112c3-2 8-2 11 0" stroke="#5B7FA8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="128" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <ellipse cx="192" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <path d="M154 152c2 4 10 4 12 0" stroke="#B4645C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+
+  <!-- 胸衣:白领 + 深蓝领结 + 金扣 -->
+  <path d="M160 168c-26 0-42 14-46 34 14 8 30 10 46 10s32-2 46-10c-4-20-20-34-46-34Z" fill="#F7F9FC"/>
+  <path d="M160 172c-24 0-38 12-42 28 14 8 28 10 42 10s28-2 42-10c-4-16-18-28-42-28Z" fill="#2A3663"/>
+  <path d="M146 180h-12c-3 0-4 4-2 6l12 8c3 1 6 0 7-3l-6-11ZM174 180h12c3 0 4 4 2 6l-12 8c-3 1-6 0-7-3l6-11Z" fill="#22335E"/>
+  <circle cx="160" cy="186" r="3.2" fill="#C9A227"/>
+  <circle cx="155" cy="196" r="2" fill="#C9A227"/><circle cx="165" cy="196" r="2" fill="#C9A227"/>
+  <circle cx="155" cy="204" r="2" fill="#C9A227"/><circle cx="165" cy="204" r="2" fill="#C9A227"/>
+
+  <!-- 裙:深蓝长裙 + 白围裙 + 鲸刺绣 + 金蝴蝶结 + 白蕾丝下摆 -->
+  <path d="M112 206c-4 26-12 90-18 150-4 40-8 76-6 100 4 24 30 36 72 36s68-12 72-36c2-24-2-60-6-100-6-60-14-124-18-150-16-8-32-10-48-10s-32 2-48 10Z" fill="#2A3663"/>
+  <!-- 裙底刺绣(金线) -->
+  <path d="M96 452c6-2 12 0 16 4-4 4-12 5-16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M224 452c-6-2-12 0-16 4 4 4 12 5 16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M110 470c8 6 18 8 30 8M210 470c-8 6-18 8-30 8" stroke="#C9A227" stroke-width="1.4" fill="none" opacity="0.8"/>
+  <!-- 白围裙(比裙窄,两侧露出深蓝裙) -->
+  <path d="M134 212c-3 20-6 70-7 120-1 44-1 78 4 100 4 12 14 16 29 16s25-4 29-16c5-22 5-56 4-100-1-50-4-100-7-120-9-5-17-7-26-7s-17 2-26 7Z" fill="#F7F9FC"/>
+  <path d="M116 412c-4 2-6 8-2 12 4-4 8-4 10 0 2-6 6-8 10-6 2 2 2 6 0 8-8 8-22 8-28-2-2-4 0-8 4-8" fill="#EDF0F6" opacity="0"/>
+  <path d="M120 420c6 6 20 8 40 8s34-2 40-8" stroke="#D9DEE8" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- 围裙鲸鱼刺绣 -->
+  <g transform="translate(160,330)"><ellipse cx="0" cy="4" rx="16" ry="9" fill="#2A3663"/><path d="M14 1c4-1 7-3 8-6 2 4 1 8-2 10 2 1 4 2 6 3-4 1-8 1-11-1Z" fill="#2A3663"/><circle cx="-7" cy="2" r="1.4" fill="#F7F9FC"/><path d="M-2 -6c1-3 3-5 6-6-1 3-1 6 1 8" fill="#4E7EC0"/></g>
+
+  <!-- 白蕾丝下摆 -->
+  <path d="M86 452c2 18 12 30 34 34-8 8-22 8-30-2-6-8-8-16-8-28ZM234 452c-2 18-12 30-34 34 8 8 22 8 30-2 6-8 8-16 8-28Z" fill="#F7F9FC"/>
+  <path d="M90 456c14 8 44 12 70 12s56-4 70-12" stroke="#F7F9FC" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M96 458c8 5 22 8 30 9M224 458c-8 5-22 8-30 9" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+
+  <!-- 袜与鞋 -->
+  <rect x="132" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <rect x="170" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <path d="M130 516c-4 2-6 6-6 10 0 8 6 14 14 14 7 0 13-4 13-10v-14h-21Z" fill="#F7F9FC"/>
+  <path d="M190 516c4 2 6 6 6 10 0 8-6 14-14 14-7 0-13-4-13-10v-14h21Z" fill="#F7F9FC"/>
+  <path d="M126 522c2-2 4-3 6-3M132 522v14M194 522c-2-2-4-3-6-3M188 522v14" stroke="#D9DEE8" stroke-width="1.6"/>
+  <path d="M122 538c0 6 8 10 16 10s16-4 16-10v-8H122v8Z" fill="#2A3663"/>
+  <path d="M182 538c0 6 8 10 16 10s16-4 16-10v-8h-16v8Z" fill="#2A3663"/>
+  <path d="M124 536h30M184 536h30" stroke="#22335E" stroke-width="3"/>
+  <path d="M138 540h4M194 540h4" stroke="#C9A227" stroke-width="2" stroke-linecap="round"/>
+  </svg></div>
+  <div class="row" style="margin-top:12px">
+    <div><div style="font-size:16px;font-weight:700">小鲸 · 深海书简</div><div class="tiny" style="margin-top:3px">角色包 · 含连载 6 章</div></div>
+    <div style="font-size:16px;font-weight:700;color:#3E8F5B">免费</div>
+  </div>
+</div>
+<div class="btn pri" style="background:#26325F;margin-top:16px">放进收藏柜</div></main></template>
+<template data-page="onboarding/sign"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">开箱 · 契约签署</span><span class="shright"></span></div><main class="content">
+<h1 style="font-size:21px;margin:2px 0 10px">把它说过的话,按一下手印</h1>
+<p class="sub">这四件事,它永远不做</p>
+<div class="card">
+  <div class="cap">契约卡 · 我们永不做的四件事</div>
+  <div style="margin-top:12px;font-size:14px;line-height:2.1">
+    · 永不静默改变它的性格<br>
+    · 永不擅自删除你的记忆<br>
+    · 停服前 12 个月通知,并交付档案<br>
+    · 记忆永久免费,不进任何付费口径
+  </div>
+</div>
+<div class="btn pri" style="background:#26325F;margin-top:16px">签署</div>
+<div class="tiny" style="margin-top:10px;text-align:center">签署在小程序里完成;包装里也有一张实物契约卡。</div></main></template>
+<template data-page="onboarding/done"><div class="subheader"><a href="#/" class="back"><svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 5.4 7.8 12l6.6 6.6"/><path d="M8.6 12h11"/></svg></a><span class="shtitle">开箱 · 完成</span><span class="shright"></span></div><main class="content">
+<div style="height:120px;display:flex;flex-direction:column;justify-content:center">
+  <h1 style="font-size:24px;line-height:1.4">好了,<br>它认识你了</h1>
+</div>
+<div class="card" style="text-align:center">
+  <div class="cap">开箱第一句话卡</div>
+  <div class="square" style="margin:14px 0 10px;aspect-ratio:1/1.1"><svg viewBox="20 4 280 302" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="角色立绘:深蓝女仆鲸娘">
+  <defs>
+    <linearGradient id="m-hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="0.55" stop-color="#4E6FB6"/><stop offset="1" stop-color="#9CD2EF"/>
+    </linearGradient>
+    <linearGradient id="m-iris" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BFE8F6"/><stop offset="0.55" stop-color="#4E7EC0"/><stop offset="1" stop-color="#22335E"/>
+    </linearGradient>
+    <linearGradient id="m-tail" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#2A3663"/><stop offset="1" stop-color="#7FB9DC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 鲸鱼尾(身后,向右扫:尾鳍明显探出裙外) -->
+  <path d="M214 380c40-16 72-46 92-88-4 42-12 82-30 118-14 26-32 40-52 44-11 2-19-7-17-18 2-22 3-40 7-56Z" fill="url(#m-tail)"/>
+  <path d="M256 452c10 4 19 11 26 20-12 7-28 7-40-2-9-7-11-17-7-26 5-9 14-9 21 8Z" fill="url(#m-tail)" opacity="0.92"/>
+
+  <!-- 后发(到腰的长卷发) -->
+  <path d="M160 64c-52 0-76 36-74 84 1 30-4 66-18 108-6 18-4 30 8 40 10 8 22 6 28-4 4-8 4-18 0-28-2 24 6 44 22 52 16 8 36 4 48-4 8-6 12-16 12-26-6-40-10-80-8-118 1-28-6-60-18-104Z" fill="url(#m-hair)"/>
+  <path d="M160 64c52 0 76 36 74 84-1 30 4 66 18 108 6 18 4 30-8 40-10 8-22 6-28-4-4-8-4-18 0-28 2 24-6 44-22 52-16 8-36 4-48-4-8-6-12-16-12-26 6-40 10-80 8-118-1-28 6-60 18-104Z" fill="url(#m-hair)"/>
+
+  <!-- 鲸鳍耳(两侧,向外后) -->
+  <path d="M106 120c-16-7-32-2-40 13 10 1 22 5 31 13 5-5 9-14 9-26Z" fill="#2A3663"/>
+  <path d="M104 124c-12-4-24 0-30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M214 120c16-7 32-2 40 13-10 1-22 5-31 13-5-5-9-14-9-26Z" fill="#2A3663"/>
+  <path d="M216 124c12-4 24 0 30 10" stroke="#7FB9DC" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+
+  <!-- 女仆头饰 -->
+  <path d="M94 92c4-20 30-32 66-32s62 12 66 32c-8-8-20-10-20-10-6-6-16-8-20-8s-14 2-20 8c0 0-12 2-20 10Z" fill="#F7F9FC"/>
+  <path d="M94 92c6-6 12-8 18-8M226 92c-6-6-12-8-18-8M112 82c4-4 10-6 16-7M208 82c-4-4-10-6-16-7M132 76c4-3 8-4 12-4M188 76c-4-3-8-4-12-4" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+  <path d="M94 92c-4 8-2 16 2 22 6-6 8-14 6-22ZM226 92c4 8 2 16-2 22-6-6-8-14-6-22Z" fill="#F7F9FC"/>
+  <!-- 头饰侧蝴蝶结 -->
+  <g transform="translate(226,104)"><path d="M0 0l14-7c4 3 4 9 0 12L0 6c-4 3-4 7 0 10l14-7c4-3 4-9 0-12L0 0Z" fill="#7EC4E8"/><circle cx="0" cy="3" r="3" fill="#4E7EC0"/></g>
+
+  <!-- 头顶卷天线(鲸鱼喷水) -->
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#2A3663" stroke-width="11" stroke-linecap="round"/>
+  <path d="M160 74c-2-26-14-46-34-52-16-5-28 4-26 18 2 11 12 16 22 13" fill="none" stroke="#5B7FC4" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- 颈 -->
+  <rect x="150" y="160" width="20" height="26" rx="9" fill="#F0CBB4"/>
+  <!-- 肩袖与臂 -->
+  <path d="M114 178c-18 6-28 20-32 42-3 16 0 34 6 52l16-4c-4-16-4-32-2-46 2-12 6-22 12-30Z" fill="#2A3663"/>
+  <path d="M206 178c18 6 28 20 32 42 3 16 0 34-6 52l-16-4c4-16 4-32 2-46-2-12-6-22-12-30Z" fill="#2A3663"/>
+  <path d="M84 262c2 8 4 12 8 16 5 4 10 4 14 0l-4-16-16 4Z" fill="#F0CBB4"/>
+  <path d="M236 262c-2 8-4 12-8 16-5 4-10 4-14 0l4-16 16 4Z" fill="#F0CBB4"/>
+  <path d="M84 258c-2 4 0 10 4 12 4-4 8-8 10-12l-12-4Z" fill="#F7F9FC"/>
+  <path d="M236 258c2 4 0 10-4 12-4-4-8-8-10-12l12-4Z" fill="#F7F9FC"/>
+
+  <!-- 脸 -->
+  <path d="M160 78c-32 0-48 24-48 54 0 30 20 50 48 50s48-20 48-50c0-30-16-54-48-54Z" fill="#FBE4D6"/>
+  <!-- 刘海 -->
+  <path d="M160 74c-34 0-52 24-50 50 8-18 20-24 30-34 6 14 20 18 30 18 12 0 22-6 26-12-2-14-16-22-36-22Z" fill="url(#m-hair)"/>
+  <path d="M112 104c-2 6-3 12-3 18 2 8 6 10 10 12-1-6-2-12-1-18M208 104c2 6 3 12 3 18-2 8-6 10-10 12 1-6 2-12 1-18" fill="url(#m-hair)"/>
+
+  <!-- 眼 -->
+  <ellipse cx="138" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="138" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="141" cy="126" r="2.8" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="130" rx="11" ry="13" fill="#FFFFFF"/>
+  <ellipse cx="182" cy="131" rx="8" ry="10.5" fill="url(#m-iris)"/>
+  <circle cx="185" cy="126" r="2.8" fill="#FFFFFF"/>
+  <path d="M128 116c4-3 9-4 13-3M177 113c4-1 9 0 13 3" stroke="#22335E" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M130 112c3-2 8-2 11 0M179 112c3-2 8-2 11 0" stroke="#5B7FA8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="128" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <ellipse cx="192" cy="148" rx="7" ry="4" fill="#F2A6A0" opacity="0.55"/>
+  <path d="M154 152c2 4 10 4 12 0" stroke="#B4645C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+
+  <!-- 胸衣:白领 + 深蓝领结 + 金扣 -->
+  <path d="M160 168c-26 0-42 14-46 34 14 8 30 10 46 10s32-2 46-10c-4-20-20-34-46-34Z" fill="#F7F9FC"/>
+  <path d="M160 172c-24 0-38 12-42 28 14 8 28 10 42 10s28-2 42-10c-4-16-18-28-42-28Z" fill="#2A3663"/>
+  <path d="M146 180h-12c-3 0-4 4-2 6l12 8c3 1 6 0 7-3l-6-11ZM174 180h12c3 0 4 4 2 6l-12 8c-3 1-6 0-7-3l6-11Z" fill="#22335E"/>
+  <circle cx="160" cy="186" r="3.2" fill="#C9A227"/>
+  <circle cx="155" cy="196" r="2" fill="#C9A227"/><circle cx="165" cy="196" r="2" fill="#C9A227"/>
+  <circle cx="155" cy="204" r="2" fill="#C9A227"/><circle cx="165" cy="204" r="2" fill="#C9A227"/>
+
+  <!-- 裙:深蓝长裙 + 白围裙 + 鲸刺绣 + 金蝴蝶结 + 白蕾丝下摆 -->
+  <path d="M112 206c-4 26-12 90-18 150-4 40-8 76-6 100 4 24 30 36 72 36s68-12 72-36c2-24-2-60-6-100-6-60-14-124-18-150-16-8-32-10-48-10s-32 2-48 10Z" fill="#2A3663"/>
+  <!-- 裙底刺绣(金线) -->
+  <path d="M96 452c6-2 12 0 16 4-4 4-12 5-16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M224 452c-6-2-12 0-16 4 4 4 12 5 16 2Z" stroke="#C9A227" stroke-width="1.6" fill="none"/>
+  <path d="M110 470c8 6 18 8 30 8M210 470c-8 6-18 8-30 8" stroke="#C9A227" stroke-width="1.4" fill="none" opacity="0.8"/>
+  <!-- 白围裙(比裙窄,两侧露出深蓝裙) -->
+  <path d="M134 212c-3 20-6 70-7 120-1 44-1 78 4 100 4 12 14 16 29 16s25-4 29-16c5-22 5-56 4-100-1-50-4-100-7-120-9-5-17-7-26-7s-17 2-26 7Z" fill="#F7F9FC"/>
+  <path d="M116 412c-4 2-6 8-2 12 4-4 8-4 10 0 2-6 6-8 10-6 2 2 2 6 0 8-8 8-22 8-28-2-2-4 0-8 4-8" fill="#EDF0F6" opacity="0"/>
+  <path d="M120 420c6 6 20 8 40 8s34-2 40-8" stroke="#D9DEE8" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- 围裙鲸鱼刺绣 -->
+  <g transform="translate(160,330)"><ellipse cx="0" cy="4" rx="16" ry="9" fill="#2A3663"/><path d="M14 1c4-1 7-3 8-6 2 4 1 8-2 10 2 1 4 2 6 3-4 1-8 1-11-1Z" fill="#2A3663"/><circle cx="-7" cy="2" r="1.4" fill="#F7F9FC"/><path d="M-2 -6c1-3 3-5 6-6-1 3-1 6 1 8" fill="#4E7EC0"/></g>
+
+  <!-- 白蕾丝下摆 -->
+  <path d="M86 452c2 18 12 30 34 34-8 8-22 8-30-2-6-8-8-16-8-28ZM234 452c-2 18-12 30-34 34 8 8 22 8 30-2 6-8 8-16 8-28Z" fill="#F7F9FC"/>
+  <path d="M90 456c14 8 44 12 70 12s56-4 70-12" stroke="#F7F9FC" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M96 458c8 5 22 8 30 9M224 458c-8 5-22 8-30 9" stroke="#D9DEE8" stroke-width="2" fill="none"/>
+
+  <!-- 袜与鞋 -->
+  <rect x="132" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <rect x="170" y="492" width="18" height="26" rx="6" fill="#F0CBB4"/>
+  <path d="M130 516c-4 2-6 6-6 10 0 8 6 14 14 14 7 0 13-4 13-10v-14h-21Z" fill="#F7F9FC"/>
+  <path d="M190 516c4 2 6 6 6 10 0 8-6 14-14 14-7 0-13-4-13-10v-14h21Z" fill="#F7F9FC"/>
+  <path d="M126 522c2-2 4-3 6-3M132 522v14M194 522c-2-2-4-3-6-3M188 522v14" stroke="#D9DEE8" stroke-width="1.6"/>
+  <path d="M122 538c0 6 8 10 16 10s16-4 16-10v-8H122v8Z" fill="#2A3663"/>
+  <path d="M182 538c0 6 8 10 16 10s16-4 16-10v-8h-16v8Z" fill="#2A3663"/>
+  <path d="M124 536h30M184 536h30" stroke="#22335E" stroke-width="3"/>
+  <path d="M138 540h4M194 540h4" stroke="#C9A227" stroke-width="2" stroke-linecap="round"/>
+  </svg></div>
+  <div style="font-size:15px;font-weight:600">「从今天起,我记着你。」</div>
+  <div class="tiny" style="margin-top:8px">—— 小鲸 · NO.0001 · 2026-09-29</div>
+</div>
+<div class="btn ghost" style="margin-top:16px"><svg class="ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="12" r="2.4"/><circle cx="17" cy="6.6" r="2.4"/><circle cx="17" cy="17.4" r="2.4"/><path d="M9.2 10.8l5.6-3M9.2 13.2l5.6 3"/></svg>分享这张卡</div></main></template>
+<script>
+const app = document.getElementById('app');
+function go(){
+  const id = (location.hash || '').replace(/^#\/?/, '') || 'hand/today';
+  const t = document.querySelector('template[data-page="' + id + '"]') || document.querySelector('template[data-page="hand/today"]');
+  app.replaceChildren(t.content.cloneNode(true));
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange', go);
+if (!location.hash) location.hash = '#/hand/today'; else go();
+</script>
+</body></html>

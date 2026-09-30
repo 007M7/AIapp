@@ -1,0 +1,27 @@
+# 编辑器 / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 依赖与缓存(Node 零依赖,这里只是防手滑)
+node_modules/
+.npm/
+*.log
+
+# 密钥与本地配置(本仓不应有任何密钥;模板用 .example 提交)
+*.env
+.env.*
+secrets.*
+!secrets.*.example
+
+# 微信开发者工具产物
+miniprogram/dist/
+miniprogram/**/.miniprogram-cache/
+
+# 截图是产物,但**故意入库**(用于评审与交接);如后续嫌大,再迁出或走 LFS
+# prototype/*.png
+
+# 临时
+tmp/
+.tmp/

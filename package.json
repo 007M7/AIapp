@@ -1,0 +1,23 @@
+{
+  "name": "aiapp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI 手办 · 手机端(微信小程序 + 交互原型 + 素材)。CI 走本地构建运行,不使用 GitHub Actions。",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "build": "node prototype/src/build-app.mjs",
+    "verify": "npm run build && npm run check",
+    "dev": "node scripts/dev.mjs",
+    "shots": "node scripts/shots.mjs",
+    "test": "node --test \"miniprogram/test/*.test.js\"",
+    "install-hooks": "node scripts/install-hooks.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "//1": "⚠️ 不要加 \"type\": \"module\"。miniprogram/ 下的代码与测试是 CommonJS(require),加了会把它们判成 ESM 并直接报 require is not defined —— 2026-09-30 实际踩过。脚本一律用 .mjs 扩展名,不依赖 type 字段。",
+  "//2": "test 用 glob 而非目录:Windows 上 `node --test <目录>/` 会报 MODULE_NOT_FOUND。",
+  "//3": "零依赖:不引入构建工具链,任何脚本用 node 直接跑。见 CONTRIBUTING.md"
+}
