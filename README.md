@@ -57,6 +57,7 @@ prototype/          可点开的交互原型(本仓正本)
   overview.html     8 屏并排总览
   src/              生成器:core.mjs(令牌/图标/角色矢量图)+ build-app.mjs(页面内容)
   *.png             26 张 2 倍分辨率截图
+ios/                iPhone App(Xcode/SwiftUI 工程源码;构建与自签见 ios/README.md)
 docs/               文档(**快照**,正本在主仓;见 SNAPSHOT.md)
 scripts/            本地 CI 与工具(check / dev / shots / install-hooks)
 .githooks/          本地钩子(pre-commit / pre-push)

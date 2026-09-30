@@ -30,6 +30,9 @@ const REQUIRED = [
   "prototype/src/core.mjs",
   "docs/19-miniprogram-ia-prd.md",
   "docs/CONTENT.md",
+  "ios/AIFigure.xcodeproj/project.pbxproj",
+  "ios/AIFigure/Info.plist",
+  "ios/README.md",
 ];
 {
   const missing = REQUIRED.filter((p) => !existsSync(join(ROOT, p)));
@@ -117,7 +120,23 @@ const WHITELIST = ["陪伴计数"]; // 承诺文本里的功能名(docs/17 §3.4
   };
   for (const f of pageFiles) scanOne(`pages/${f}`, readFileSync(join(pagesDir, f), "utf8"));
   scanOne("index.html", indexHtml);
+  for (const f of iosSwiftFiles()) scanOne(`ios/${f.replace(ROOT, "")}`, readFileSync(f, "utf8"));
   hits.length ? bad("文案:禁用词", hits.slice(0, 8).join("; ")) : ok("文案:禁用词", `扫描 ${BANNED.length} 个词,0 命中`);
+}
+
+// 收集 ios/ 下全部 .swift(selftest 与源码一并扫)
+function iosSwiftFiles() {
+  const out = [];
+  const iosDir = join(ROOT, "ios");
+  if (!existsSync(iosDir)) return out;
+  (function walk(d) {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      const p = join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith(".swift")) out.push(p);
+    }
+  })(iosDir);
+  return out;
 }
 
 /* ---------- 7. 安全:密钥 / 生产信息扫描 ---------- */
@@ -135,7 +154,7 @@ const SECRET_PATTERNS = [
       if (e.name === ".git") continue;
       const p = join(d, e.name);
       if (e.isDirectory()) walk(p);
-      else if (/\.(js|json|wxml|wxss|html|md|mjs|conf|example|service|txt)$/.test(e.name)) {
+      else if (/\.(js|json|wxml|wxss|html|md|mjs|conf|example|service|txt|swift|plist|pbxproj)$/.test(e.name)) {
         const t = readFileSync(p, "utf8");
         for (const [re, label] of SECRET_PATTERNS) if (re.test(t)) hits.push(`${p.replace(ROOT, "")} → ${label}`);
       }
@@ -178,6 +197,36 @@ const SECRET_PATTERNS = [
       ? bad("文档快照:与主仓一致", `已漂移:${drift.join(", ")} —— 从主仓重新复制,或确认是否该改主仓(见 docs/SNAPSHOT.md)`)
       : ok("文档快照:与主仓一致", `${PAIRS.length} 份`);
   }
+}
+
+/* ---------- 10. iOS:工程与源码一致性 ---------- */
+{
+  const swifts = iosSwiftFiles();
+  const pbxPath = join(ROOT, "ios/AIFigure.xcodeproj/project.pbxproj");
+  const pbx = readFileSync(pbxPath, "utf8");
+  const problems = [];
+
+  // 每个源码文件都被工程收录
+  const missing = swifts
+    .filter((f) => !f.endsWith("tools") && !f.includes(join("tools", "")))
+    .filter((f) => !pbx.includes(f.split(/[\\/]/).pop()));
+  if (missing.length) problems.push(`未入工程:${missing.map((f) => f.replace(ROOT, "")).join(", ")}`);
+
+  // pbxproj 里出现过的每个 UUID 都必须是一个已定义对象(悬空引用 = Xcode 打不开或丢文件)
+  const defined = new Set([...pbx.matchAll(/^\t\t([0-9A-F]{24}) \/\*/gm)].map((m) => m[1]));
+  const referenced = new Set([...pbx.matchAll(/\b([0-9A-F]{24})\b/g)].map((m) => m[1]));
+  const dangling = [...referenced].filter((id) => !defined.has(id));
+  dangling.length ? problems.push(`pbxproj 悬空 UUID:${dangling.join(", ")}`) : null;
+
+  // Sources 阶段的条数 = swift 源文件数(tools/selftest.swift 不入工程)
+  // 只数阶段条目(尾逗号),避免把 PBXBuildFile 定义行也数进去(实际踩过:2×28)
+  const inSources = [...pbx.matchAll(/in Sources \*\/,/g)].length;
+  const appSwifts = swifts.filter((f) => !f.includes(`${join("ios", "tools")}`) && !f.includes("tools/"));
+  inSources !== appSwifts.length
+    ? problems.push(`Sources ${inSources} 条 ≠ 源文件 ${appSwifts.length} 个`)
+    : null;
+
+  problems.length ? bad("iOS:工程与源码一致性", problems.join("; ")) : ok("iOS:工程与源码一致性", `${appSwifts.length} 个源文件全部入工程,UUID 无悬空`);
 }
 
 /* ---------- 输出 ---------- */
