@@ -20,9 +20,9 @@ final class ProtocommBLE: NSObject {
     }
 
     // 端点名 -> 16 bit id;特征值 UUID = 服务 UUID 第一段的第 5~8 个十六进制字符换成它
-    enum Endpoint: String {
+    enum Endpoint: String, CaseIterable {
         case provCtrl = "FF4F", provScan = "FF50", provSession = "FF51", provConfig = "FF52", protoVer = "FF53"
-        var cbuuid: CBUUID { CBUUID(string: "1062" + rawValue + String(Self.serviceUUID.uuidString.dropFirst(8))) }
+        var cbuuid: CBUUID { CBUUID(string: "1062" + rawValue + String(ProtocommBLE.serviceUUID.uuidString.dropFirst(8))) }
     }
 
     /// prov.js 用的端点字符串名 -> 本类枚举(ProvisionSession 的 xfer 闭包拿字符串)
@@ -111,11 +111,11 @@ final class ProtocommBLE: NSObject {
         guard writeCont == nil, readCont == nil else { throw ProvError.ble("上一个请求还没结束") }
         let result: Data = try await withTimeout(Self.xferTimeout, "手办没有响应,请靠近后重新连接") {
             try await withCheckedThrowingContinuation { (w: CheckedContinuation<Void, Error>) in
-                writeCont = w
+                self.writeCont = w
                 p.writeValue(bytes, for: ch, type: .withResponse)
             }
             return try await withCheckedThrowingContinuation { (r: CheckedContinuation<Data, Error>) in
-                readCont = r
+                self.readCont = r
                 p.readValue(for: ch)
             }
         }
@@ -150,8 +150,8 @@ final class ProtocommBLE: NSObject {
 
     private func failPending(_ message: String) {
         let e = ProvError.ble(message)
-        for c in [writeCont, readCont] { c?.resume(throwing: e) }
-        writeCont = nil; readCont = nil
+        if let w = writeCont { writeCont = nil; w.resume(throwing: e) }
+        if let r = readCont { readCont = nil; r.resume(throwing: e) }
         if let c = connectCont { connectCont = nil; c.resume(throwing: e) }
         if let c = serviceCont { serviceCont = nil; c.resume(throwing: e) }
     }

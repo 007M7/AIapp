@@ -68,7 +68,7 @@ struct ChatView: View {
                 } label: {
                     Image(systemName: sending ? "hourglass" : "arrow.up.circle.fill")
                         .font(.system(size: 30))
-                        .foregroundStyle(sending || input.isEmpty ? .tertiary : T.mid)
+                        .foregroundStyle(T.mid.opacity(sending || input.isEmpty ? 0.35 : 1))
                 }
                 .disabled(sending || input.isEmpty)
             }

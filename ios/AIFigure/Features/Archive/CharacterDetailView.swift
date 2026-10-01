@@ -57,7 +57,7 @@ struct CharacterDetailView: View {
     private func bibleCard(_ tags: [String]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             CapLabel("角色圣经")
-            FlowTags(tags)
+            FlowTags(tags: tags)
             Text("圣经是公开可查的;任何改动都会提前公示,旧版本可以回滚。")
                 .font(AppFont.caption()).foregroundStyle(.secondary)
         }

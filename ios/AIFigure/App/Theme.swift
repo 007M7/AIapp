@@ -63,6 +63,12 @@ struct CapLabel: View {
 struct TagPill: View {
     let text: String
     var tint: Color = T.mid
+
+    init(_ text: String, tint: Color = T.mid) {
+        self.text = text
+        self.tint = tint
+    }
+
     var body: some View {
         Text(text)
             .font(AppFont.caption(12))
