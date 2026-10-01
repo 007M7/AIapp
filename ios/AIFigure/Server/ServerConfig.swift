@@ -24,8 +24,8 @@ final class ServerConfig: ObservableObject {
     }
 
     var isConfigured: Bool {
-        guard let url = apiBase else { return false }
-        return !url.host().isEmpty
+        guard let url = apiBase, let host = url.host else { return false }
+        return !host.isEmpty
     }
 
     var apiBase: URL? {

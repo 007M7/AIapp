@@ -71,7 +71,7 @@ struct PromiseView: View {
                 PageHeader(title: Copy.promisePageTitle, subtitle: Copy.promisePageIntro)
                 VStack(alignment: .leading, spacing: 12) {
                     CapLabel(Copy.promiseSectionTitle)
-                    ForEach(Copy.promises, id: \.title) { p in
+                    ForEach(Copy.promises) { p in
                         VStack(alignment: .leading, spacing: 4) {
                             Text("「\(p.title)」").font(AppFont.headline(16)).foregroundStyle(T.ink)
                             Text(p.body).font(AppFont.body(14)).foregroundStyle(.secondary)

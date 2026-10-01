@@ -72,7 +72,7 @@ struct CertificateView: View {
             Text(Copy.contractSignNote).font(AppFont.caption()).foregroundStyle(.secondary)
         }
         .card()
-        .onChange(of: signed) { _, value in
+        .onChange(of: signed) { value in
             if value { UserDefaults.standard.set(true, forKey: "contract.signed.v1") }
         }
     }

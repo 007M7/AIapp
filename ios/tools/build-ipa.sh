@@ -22,15 +22,17 @@ if [ ! -d "$PROJ" ]; then
 fi
 
 echo "── 编译(Release, iPhoneOS, 不签名)"
+# 注意:-target 不能与 -derivedDataPath 同用(xcodebuild 会报 exit 64);
+# 用 CONFIGURATION_BUILD_DIR 定点输出到临时目录。
 xcodebuild -project "$PROJ" \
   -target AIFigure \
   -configuration Release \
   -sdk iphoneos \
-  -derivedDataPath "$BUILD/dd" \
+  CONFIGURATION_BUILD_DIR="$BUILD/products" \
   CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
   build
 
-APP="$BUILD/dd/Build/Products/Release-iphoneos/AIFigure.app"
+APP="$BUILD/products/AIFigure.app"
 [ -d "$APP" ] || { echo "构建失败:没找到 .app 产物"; exit 1; }
 
 echo "── 打包 ipa"

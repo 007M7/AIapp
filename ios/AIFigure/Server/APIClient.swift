@@ -43,6 +43,8 @@ final class APIClient {
             let msg = (try? decoder.decode(APIEnvelope.self, from: data))?.message ?? ""
             throw APIError(status: http.statusCode, message: msg)
         }
+        // 204/空体(DELETE 等)按 Empty 处理,别去解 JSON(实际踩过)
+        if data.isEmpty, let empty = Empty() as? T { return empty }
         return try decoder.decode(T.self, from: data)
     }
 

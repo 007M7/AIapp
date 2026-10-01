@@ -5,6 +5,7 @@ struct CharacterDetailView: View {
     @EnvironmentObject private var env: AppEnv
     let character: FigureCharacter
     @State private var fresh: FigureCharacter?
+    @State private var showChat = false
 
     private var c: FigureCharacter { fresh ?? character }
 
@@ -17,9 +18,8 @@ struct CharacterDetailView: View {
                 voiceCard
                 factsCard
                 PrimaryButton(title: "和它说几句", icon: "bubble.left.and.text.bubble.right") {
-                    // 进入下方聊天
+                    showChat = true
                 }
-                .simultaneousGesture(TapGesture()) // 占位:聊天入口在工具栏,见 toolbar
             }
             .padding(16)
         }
@@ -30,6 +30,7 @@ struct CharacterDetailView: View {
                 Image(systemName: "bubble.left.and.text.bubble.right")
             }
         }
+        .navigationDestination(isPresented: $showChat) { ChatView(character: c) }
         .task { fresh = try? await env.api.character(c.id) }
     }
 

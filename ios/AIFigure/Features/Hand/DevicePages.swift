@@ -6,7 +6,7 @@ struct DeviceManualView: View {
         ScrollView {
             VStack(spacing: 14) {
                 PageHeader(title: Copy.manualTitle, subtitle: Copy.manualIntro)
-                ForEach(Copy.deviceActions, id: \.title) { a in
+                ForEach(Copy.deviceActions) { a in
                     VStack(alignment: .leading, spacing: 8) {
                         Image(systemName: a.title == "按住说话" ? "waveform" : "hand.raised")
                             .font(.system(size: 28)).foregroundStyle(T.mid)

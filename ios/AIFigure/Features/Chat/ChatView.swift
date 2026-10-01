@@ -42,7 +42,7 @@ struct ChatView: View {
                     }
                     .padding(16)
                 }
-                .onChange(of: bubbles) { _, list in
+                .onChange(of: bubbles) { list in
                     if let last = list.last { proxy.scrollTo(last.id, anchor: .bottom) }
                 }
             }

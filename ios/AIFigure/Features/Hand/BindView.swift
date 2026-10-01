@@ -13,10 +13,10 @@ struct BindView: View {
         ScrollView {
             VStack(spacing: 14) {
                 PageHeader(title: Copy.bindTitle, subtitle: Copy.bindIntro)
-                ForEach(Copy.bindOptions, id: \.title) { opt in
+                ForEach(Copy.bindOptions) { opt in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(opt.title).font(AppFont.headline()).foregroundStyle(T.ink)
-                        Text(opt.note).font(AppFont.body(13)).foregroundStyle(.secondary)
+                        Text(opt.body).font(AppFont.body(13)).foregroundStyle(.secondary)
                     }
                     .card()
                 }

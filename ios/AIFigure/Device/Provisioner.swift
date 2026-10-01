@@ -27,8 +27,9 @@ final class Provisioner: ObservableObject {
     var passwordHidden: Bool { true }
 
     func startScan() {
-        guard stage == .idle || stage == .scanning || isTerminal else {
-            close()   // 从失败/成功态重新开始
+        // 从失败/成功态重新开始时,先把旧会话整个作废(密钥流已不可信)
+        if !(stage == .idle || stage == .scanning || isTerminal) {
+            close()
         }
         devices = []
         stage = .scanning

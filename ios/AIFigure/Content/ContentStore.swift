@@ -7,6 +7,15 @@ import Foundation
 // 文案纪律:禁用词表(docs/CONTENT.md §2)本地 CI 会扫到本目录,新增文案先过那 15 个词。
 
 enum Copy {
+    /// 文案条目:标题 + 正文。
+    /// 用结构体而不是元组 —— Swift 不支持指向元组元素的 KeyPath(`\.title` 编不过),
+    /// ForEach 依赖 KeyPath,所以这里必须是名义类型。(2026-10-01 首编修复)
+    struct Item: Identifiable {
+        var id: String { title }
+        let title: String
+        let body: String
+    }
+
     // 合规:首页常驻 AI 身份标识(PRD §8)
     static let aiBadge = "本产品为人工智能合成语音,互动对象不是真人"
 
@@ -14,10 +23,10 @@ enum Copy {
     static let promisePageTitle = "我们承诺什么,不承诺什么"
     static let promisePageIntro = "这一页的内容,和包装里的卡片逐字一致。"
     static let promiseSectionTitle = "可承诺的三件事"
-    static let promises: [(title: String, body: String)] = [
-        ("按住才听", "不按住,麦克风不工作。"),
-        ("它记得你,而且记忆永久免费", "记忆可查、可改、可删;不进任何付费口径。"),
-        ("就算有一天服务停了,它还是一尊手办", "造型、收藏、离线底稿、陪伴计数、底座刻痕都留在你手里。不承诺停服后仍会说话。"),
+    static let promises: [Item] = [
+        Item(title: "按住才听", body: "不按住,麦克风不工作。"),
+        Item(title: "它记得你,而且记忆永久免费", body: "记忆可查、可改、可删;不进任何付费口径。"),
+        Item(title: "就算有一天服务停了,它还是一尊手办", body: "造型、收藏、离线底稿、陪伴计数、底座刻痕都留在你手里。不承诺停服后仍会说话。"),
     ]
     static let stopServiceTitle = "停服后失效的东西"
     static let stopServiceItems = "对话 · 主动开口 · 内容更新 · 社区 · 订阅权益"
@@ -53,18 +62,18 @@ enum Copy {
     // 设备两动作(device/manual)—— 三处一致:包装卡 / 开箱第一句 / 本页
     static let manualTitle = "它的两个动作"
     static let manualIntro = "包装卡、开箱第一句、本页,说的是同一件事"
-    static let deviceActions: [(title: String, body: String)] = [
-        ("按住说话", "按住头顶那颗按键,松开,它就开口。"),
-        ("播放中按键打断", "它在说的时候,按一下,它就停。"),
+    static let deviceActions: [Item] = [
+        Item(title: "按住说话", body: "按住头顶那颗按键,松开,它就开口。"),
+        Item(title: "播放中按键打断", body: "它在说的时候,按一下,它就停。"),
     ]
     static let manualFooter = "没有更多手势了;其余一切都在手机 App 里完成。"
 
     // 绑定(device/bind)
     static let bindTitle = "绑定手办"
     static let bindIntro = "两种都可以;不强制,先领一只「虚拟手办」看看也行"
-    static let bindOptions: [(title: String, note: String)] = [
-        ("扫码绑定", "底座二维码一扫即连"),
-        ("手动输入 SN", "底座或说明书上的序列号"),
+    static let bindOptions: [Item] = [
+        Item(title: "扫码绑定", body: "底座二维码一扫即连"),
+        Item(title: "手动输入 SN", body: "底座或说明书上的序列号"),
     ]
     static let bindFooter = "不想现在绑定也可以跳过;开箱仪式里的每一步都能断点续做。"
 
@@ -111,10 +120,10 @@ enum Copy {
     static let exitNote = "我们不会用「再想想」拦住你,也不会在你删完之后把数据留在你拿不到的地方。"
 
     // 通知与隐私(me/settings)
-    static let privacyItems: [(title: String, note: String)] = [
-        ("新内容提醒", "每周一次 · 不推广告"),
-        ("授权管理", "相机 / 蓝牙 / 麦克风"),
-        ("原声与录音的使用", "默认不用于训练"),
+    static let privacyItems: [Item] = [
+        Item(title: "新内容提醒", body: "每周一次 · 不推广告"),
+        Item(title: "授权管理", body: "相机 / 蓝牙 / 麦克风"),
+        Item(title: "原声与录音的使用", body: "默认不用于训练"),
     ]
 
     // 兑换码(store/redeem)

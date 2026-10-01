@@ -92,8 +92,8 @@ struct SettingsView: View {
 
     private var privacyCard: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(Copy.privacyItems, id: \.title) { item in
-                LabeledRow(title: item.title, note: item.note)
+            ForEach(Copy.privacyItems) { item in
+                LabeledRow(title: item.title, note: item.body)
                 Divider()
             }
             LabeledRow(title: "对话原文不出域", note: "只存你自己的服务器")
