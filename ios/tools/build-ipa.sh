@@ -1,0 +1,37 @@
+#!/bin/bash
+# 在任意一台 Mac 上出「未签名 ipa」,之后拷到 Windows 用 Sideloadly 签名安装。
+#
+# 为什么不签名:Sideloadly 用你的 Apple ID 自己签;Xcode 侧签名反而会被重签覆盖。
+# 用 -target 而不是 -scheme:手写工程没有共享 scheme,不依赖先开过 Xcode。
+#
+# 用法(Mac 上,本仓库任意位置):
+#   bash ios/tools/build-ipa.sh
+# 产物:ios/dist/AIFigure-unsigned.ipa
+set -euo pipefail
+
+IOS_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+PROJ="$IOS_DIR/AIFigure.xcodeproj"
+OUT="$IOS_DIR/dist"
+BUILD="$(mktemp -d)"
+trap 'rm -rf "$BUILD"' EXIT
+
+echo "── 编译(Release, iPhoneOS, 不签名)"
+xcodebuild -project "$PROJ" \
+  -target AIFigure \
+  -configuration Release \
+  -sdk iphoneos \
+  -derivedDataPath "$BUILD/dd" \
+  CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+  build
+
+APP="$BUILD/dd/Build/Products/Release-iphoneos/AIFigure.app"
+[ -d "$APP" ] || { echo "构建失败:没找到 .app 产物"; exit 1; }
+
+echo "── 打包 ipa"
+rm -rf "$OUT"
+mkdir -p "$OUT/Payload"
+cp -R "$APP" "$OUT/Payload/"
+(cd "$OUT" && zip -qry AIFigure-unsigned.ipa Payload && rm -rf Payload)
+
+echo "── 完成:$OUT/AIFigure-unsigned.ipa"
+echo "   下一步:拷到 Windows → Sideloadly 签名安装(见 ios/README.md §4)"

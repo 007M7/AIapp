@@ -60,29 +60,29 @@ swift ios/tools/selftest.swift \
       ios/AIFigure/Device/X25519.swift
 ```
 
-## 4. 签名与安装(自签)
+## 4. 构建与签名(Sideloadly 路线)
 
-两条路,选一:
+**分工要分清**:Sideloadly(Windows,开源)只负责**签名 + 侧载**现成 ipa,**不能编译 SwiftUI**;
+编译必须在一台 Mac 上(`build-ipa.sh` 一条命令)。两步:
 
-- **路 A:Xcode 免费个人团队**。免费 Apple ID 的描述文件 **7 天过期**,过期重跑一次 Cmd+R;
-- **路 B:自签工具(已跑通的 jev 链路)**。本机(Mac)出**未签名包**,交给签名工具:
+### 4.1 Mac 侧:出未签名 ipa(一次性)
 
 ```bash
-# 1) 出 .app(不签名)
-xcodebuild -project ios/AIFigure.xcodeproj -scheme AIFigure \
-  -configuration Release -destination 'generic/platform=iOS' \
-  CODE_SIGNING_ALLOWED=NO build
-# 产物在 DerivedData 的 Build/Products/Release-iphoneos/AIFigure.app
-
-# 2) 打成未签名 ipa
-mkdir -p Payload && cp -R <上面的路径>/AIFigure.app Payload/
-zip -r AIFigure-unsigned.ipa Payload && rm -rf Payload
+bash ios/tools/build-ipa.sh     # 产物:ios/dist/AIFigure-unsigned.ipa
 ```
 
-然后把 `AIFigure-unsigned.ipa` 交给你的自签工具(证书 P12 + 描述文件),签完侧载。
-若工具要求 App ID 匹配,把工程里 `PRODUCT_BUNDLE_IDENTIFIER` 改成证书登记值再 build。
-若你的 api 域名用的是**自签证书**(非 CA 签发),在 Info.plist 加 `NSAppTransportSecurity` 的
-域名例外;CA 签发(含 Let's Encrypt)不用动。
+### 4.2 Windows 侧:Sideloadly 签名安装
+
+1. 前置驱动:**本机已确认装好**(iTunes + Apple Mobile Device Support,2026-09-29 核对);
+   若换机器遇到"设备不识别",装 Apple 官网版 iTunes(**不要** Microsoft Store 版);
+2. Sideloadly 本体:**本机当前未安装**,从 `sideloadly.io` 下 Windows 版装上;
+3. 手机连 USB → Sideloadly 拖入 `AIFigure-unsigned.ipa` → 填 Apple ID → Start;
+4. **免费 Apple ID 注意**:Sideloadly 会自动改 Bundle ID 加后缀(保持默认即可,工程里的
+   `com.aiapp.figure` 是占位);同一证书**最多 3 个 App**、**7 天过期**(过期重签一次);
+5. 首次安装后在手机上:设置 → 通用 → VPN与设备管理 → 信任你的开发者证书。
+
+> 没有任何 Mac 可用时的替代:GitHub Actions 的 macOS runner 能跑同一条 xcodebuild
+> (一次性手动触发,不做 CI 检查)——是否启用见 `09` D-13 备注,等你拍板。
 
 ## 5. 协议映射(与设备/服务端共用的一套)
 
