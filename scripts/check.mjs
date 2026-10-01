@@ -30,7 +30,8 @@ const REQUIRED = [
   "prototype/src/core.mjs",
   "docs/19-miniprogram-ia-prd.md",
   "docs/CONTENT.md",
-  "ios/AIFigure.xcodeproj/project.pbxproj",
+  "ios/project.yml",
+  ".github/workflows/ios-unsigned.yml",
   "ios/AIFigure/Info.plist",
   "ios/README.md",
 ];
@@ -199,34 +200,30 @@ const SECRET_PATTERNS = [
   }
 }
 
-/* ---------- 10. iOS:工程与源码一致性 ---------- */
+/* ---------- 10. iOS:工程与源码一致性(XcodeGen 单源,同 jev 范式)---------- */
 {
   const swifts = iosSwiftFiles();
-  const pbxPath = join(ROOT, "ios/AIFigure.xcodeproj/project.pbxproj");
-  const pbx = readFileSync(pbxPath, "utf8");
+  const yml = readFileSync(join(ROOT, "ios/project.yml"), "utf8");
+  const plist = readFileSync(join(ROOT, "ios/AIFigure/Info.plist"), "utf8");
+  const wf = readFileSync(join(ROOT, ".github/workflows/ios-unsigned.yml"), "utf8");
   const problems = [];
 
-  // 每个源码文件都被工程收录
-  const missing = swifts
-    .filter((f) => !f.endsWith("tools") && !f.includes(join("tools", "")))
-    .filter((f) => !pbx.includes(f.split(/[\\/]/).pop()));
-  if (missing.length) problems.push(`未入工程:${missing.map((f) => f.replace(ROOT, "")).join(", ")}`);
+  if (!/^name: AIFigure/m.test(yml)) problems.push("project.yml 缺 name: AIFigure");
+  if (!/iOS:\s*"16\.0"/.test(yml)) problems.push("project.yml 缺 deploymentTarget iOS 16.0");
+  if (!/NSBluetoothAlwaysUsageDescription/.test(plist)) problems.push("Info.plist 缺蓝牙权限文案");
+  for (const [needle, label] of [
+    ["macos-15", "稳定镜像(不用 xcode-27 preview,排队坑见 jev)"],
+    ["xcodegen", "XcodeGen 生成"],
+    ["CODE_SIGNING_ALLOWED=NO", "未签名编译"],
+    ["AIFigure-unsigned", "ipa 命名"],
+  ]) {
+    if (!wf.includes(needle)) problems.push(`workflow 缺 ${label}(${needle})`);
+  }
+  if (swifts.length < 25) problems.push(`swift 源文件只有 ${swifts.length} 个,疑似目录被清空`);
 
-  // pbxproj 里出现过的每个 UUID 都必须是一个已定义对象(悬空引用 = Xcode 打不开或丢文件)
-  const defined = new Set([...pbx.matchAll(/^\t\t([0-9A-F]{24}) \/\*/gm)].map((m) => m[1]));
-  const referenced = new Set([...pbx.matchAll(/\b([0-9A-F]{24})\b/g)].map((m) => m[1]));
-  const dangling = [...referenced].filter((id) => !defined.has(id));
-  dangling.length ? problems.push(`pbxproj 悬空 UUID:${dangling.join(", ")}`) : null;
-
-  // Sources 阶段的条数 = swift 源文件数(tools/selftest.swift 不入工程)
-  // 只数阶段条目(尾逗号),避免把 PBXBuildFile 定义行也数进去(实际踩过:2×28)
-  const inSources = [...pbx.matchAll(/in Sources \*\/,/g)].length;
-  const appSwifts = swifts.filter((f) => !f.includes(`${join("ios", "tools")}`) && !f.includes("tools/"));
-  inSources !== appSwifts.length
-    ? problems.push(`Sources ${inSources} 条 ≠ 源文件 ${appSwifts.length} 个`)
-    : null;
-
-  problems.length ? bad("iOS:工程与源码一致性", problems.join("; ")) : ok("iOS:工程与源码一致性", `${appSwifts.length} 个源文件全部入工程,UUID 无悬空`);
+  problems.length
+    ? bad("iOS:工程与源码一致性", problems.join("; "))
+    : ok("iOS:工程与源码一致性", `${swifts.length} 个 Swift 文件;project.yml/workflow/Info.plist 关键项齐`);
 }
 
 /* ---------- 输出 ---------- */

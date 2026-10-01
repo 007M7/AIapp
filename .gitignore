@@ -25,3 +25,9 @@ miniprogram/**/.miniprogram-cache/
 # 临时
 tmp/
 .tmp/
+
+# iOS 构建产物
+ios/build/
+ios/dist/
+ios/Payload/
+ios/*.ipa

@@ -25,7 +25,7 @@
 
 ```
 ios/
-  AIFigure.xcodeproj/          Xcode 工程(objectVersion 56,Xcode 14–16 兼容)
+  project.yml                  XcodeGen 工程定义(单一来源;不提交 .xcodeproj,同 jev 范式)
   AIFigure/
     App/        入口、根 TabView、设计令牌(与 prototype core.mjs 的 T 一一对应)
     Content/    数据模型 + 静态文案库(承诺/契约/免费区/空态,禁用词已过 CI)
@@ -35,21 +35,33 @@ ios/
     Features/   Hand(今天/绑定/配网/说明/设置)· Chat · Archive · Community · Store · Me · Onboarding
     Resources/  Info.plist + Assets.xcassets(AccentColor 已设;AppIcon 空位待美术)
   tools/
+    build-ipa.sh    Mac 侧一键出包(自动 xcodegen generate)
     selftest.swift  移植层自测(NIST AES-256-CTR 向量 + pb/AES/X25519 与 JS 实现对拍)
+.github/workflows/ios-unsigned.yml   云构建:macOS runner 出未签名 IPA(手动触发)
 ```
 
-## 3. 构建(Mac 上)
+## 3. 构建(与 jev 项目同一条已跑通链路)
 
-1. `open ios/AIFigure.xcodeproj`;
-2. Signing & Capabilities:选你的 **Team**(免费 Apple ID 即可),Bundle ID 需要时改成你证书里登记的那个(默认占位 `com.aiapp.figure`);
-3. 选真机,Cmd+R。
+**路线 A(默认,没有 Mac 也行):GitHub Actions 云构建**
 
-命令行等价:
+1. 仓库推到 GitHub 后,仓库页 → **Actions** → 左侧「iOS 未签名 IPA」→ **Run workflow**
+   (`note` 随便填,会进 artifact 名);
+2. 跑完在 Artifacts 下载 `AIFigure-unsigned-<note>`,里面是 `AIFigure-unsigned.ipa`;
+3. 走 §4 的 Sideloadly 签名安装。
+
+> 用稳定 `macos-15` 镜像(本工程只需 iOS 16 SDK)。**不要**学 jev 换 `xcode-27`
+> preview 镜像——那个镜像经常抢不到机器,~11 秒 completed/failure、steps 为空 =
+> 没排上队,重试即可,不是构建错误(jev 实测教训,写在它的 workflow 注释里)。
+
+**路线 B(有 Mac 时)**:
 
 ```bash
-xcodebuild -project ios/AIFigure.xcodeproj -scheme AIFigure \
-  -destination 'generic/platform=iOS' -allowProvisioningUpdates build
+brew install xcodegen        # 首次
+bash ios/tools/build-ipa.sh  # 自动 xcodegen generate → 编译 → ios/dist/AIFigure-unsigned.ipa
 ```
+
+想直接在 Xcode 里 Cmd+R:项目级 `CODE_SIGNING_ALLOWED=NO` 是为出未签名包设的,
+本地调试时在 Xcode 里把该设置改回 YES 并选你的 Team(免费 Apple ID 即可)。
 
 移植层自测(不依赖真机,先跑它再上真机):
 
@@ -75,7 +87,8 @@ bash ios/tools/build-ipa.sh     # 产物:ios/dist/AIFigure-unsigned.ipa
 
 1. 前置驱动:**本机已确认装好**(iTunes + Apple Mobile Device Support,2026-09-29 核对);
    若换机器遇到"设备不识别",装 Apple 官网版 iTunes(**不要** Microsoft Store 版);
-2. Sideloadly 本体:**本机当前未安装**,从 `sideloadly.io` 下 Windows 版装上;
+2. Sideloadly 本体:**本机已有便携版** `D:\jev\Sideloadly\sideloadly.exe`
+   (jev 项目 2026-09-22 签 JevAssistant 用的就是它,免安装);
 3. 手机连 USB → Sideloadly 拖入 `AIFigure-unsigned.ipa` → 填 Apple ID → Start;
 4. **免费 Apple ID 注意**:Sideloadly 会自动改 Bundle ID 加后缀(保持默认即可,工程里的
    `com.aiapp.figure` 是占位);同一证书**最多 3 个 App**、**7 天过期**(过期重签一次);

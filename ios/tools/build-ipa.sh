@@ -15,6 +15,12 @@ OUT="$IOS_DIR/dist"
 BUILD="$(mktemp -d)"
 trap 'rm -rf "$BUILD"' EXIT
 
+# 工程由 XcodeGen 从 project.yml 生成(单一来源,同 jev 范式);没有 xcodeproj 就现场生成
+if [ ! -d "$PROJ" ]; then
+  command -v xcodegen >/dev/null || { echo "需要 xcodegen:brew install xcodegen"; exit 1; }
+  (cd "$IOS_DIR" && xcodegen generate)
+fi
+
 echo "── 编译(Release, iPhoneOS, 不签名)"
 xcodebuild -project "$PROJ" \
   -target AIFigure \
