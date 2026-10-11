@@ -1,0 +1,148 @@
+{
+  "repository": "https://github.com/elin66alpha/AI_figure",
+  "commit": "69312fd87564579bb28825719000a9b952dad46c",
+  "synced_at": "2026-10-11",
+  "scope": "server/ source snapshot; no deployment or running-server configuration copied",
+  "files": [
+    {
+      "path": "server/aioutil.py",
+      "upstream_sha256": "50c02323ebe58585c8f13c265e803b7e43c8cc98cb4d30833e40750bbbb36653",
+      "local_sha256": "50c02323ebe58585c8f13c265e803b7e43c8cc98cb4d30833e40750bbbb36653",
+      "changes": []
+    },
+    {
+      "path": "server/ali_asr.py",
+      "upstream_sha256": "7380222b447e0652bc007bb7eb0af0e411365b51f5627d147622ea3327ea6760",
+      "local_sha256": "7380222b447e0652bc007bb7eb0af0e411365b51f5627d147622ea3327ea6760",
+      "changes": []
+    },
+    {
+      "path": "server/ali_tts.py",
+      "upstream_sha256": "2b7160726fd2c1670018ca89a7fdfc42749cf057a03e2a5c5ff12cfa45208d94",
+      "local_sha256": "2b7160726fd2c1670018ca89a7fdfc42749cf057a03e2a5c5ff12cfa45208d94",
+      "changes": []
+    },
+    {
+      "path": "server/asr.py",
+      "upstream_sha256": "24bbf3efecfe822544d9905eebb6939f00f81608caa3714bb7566db600cb5080",
+      "local_sha256": "24bbf3efecfe822544d9905eebb6939f00f81608caa3714bb7566db600cb5080",
+      "changes": []
+    },
+    {
+      "path": "server/config.py",
+      "upstream_sha256": "0f781bf4d3c34203b5c09a8f6f545e0ac0ea0b119845bdd8b977f8482d222644",
+      "local_sha256": "0f781bf4d3c34203b5c09a8f6f545e0ac0ea0b119845bdd8b977f8482d222644",
+      "changes": []
+    },
+    {
+      "path": "server/deploy/README.md",
+      "upstream_sha256": "fb9d94b7d85730ed91c259ea1c8393f478e5a85b8d42d4a8afe275ed42f6bcb7",
+      "local_sha256": "8a72b34edd6a04526703b72152f536a955701c8f70110e67690a3ad0ed52ae5d",
+      "changes": [
+        "deployment example host redacted; local upload source changed to server/; deployed /opt/esp32_server path retained"
+      ]
+    },
+    {
+      "path": "server/deploy/esp32-server.service",
+      "upstream_sha256": "a29cee078fc119710938988b0719c75890c7c7377acce85c86c91570088f43f7",
+      "local_sha256": "a29cee078fc119710938988b0719c75890c7c7377acce85c86c91570088f43f7",
+      "changes": []
+    },
+    {
+      "path": "server/deploy/psk.secrets.example",
+      "upstream_sha256": "ec1aa75487f99e319e010b25023807126cae4d3160af45b7a62ef6797aa36da3",
+      "local_sha256": "ec1aa75487f99e319e010b25023807126cae4d3160af45b7a62ef6797aa36da3",
+      "changes": []
+    },
+    {
+      "path": "server/deploy/stunnel-esp32.conf",
+      "upstream_sha256": "32991b6845f0e30009dd9765a14e3e384211c17f88b22cad23a1a467dade73dd",
+      "local_sha256": "32991b6845f0e30009dd9765a14e3e384211c17f88b22cad23a1a467dade73dd",
+      "changes": []
+    },
+    {
+      "path": "server/deploy/stunnel-esp32.service",
+      "upstream_sha256": "aa12439e0aab99c100591cf0a84fe41587d461313d3b16da1aeadbbc06a4ce84",
+      "local_sha256": "aa12439e0aab99c100591cf0a84fe41587d461313d3b16da1aeadbbc06a4ce84",
+      "changes": []
+    },
+    {
+      "path": "server/env.example",
+      "upstream_sha256": "4474911197cd0d6e1af20141dc4862ce4052a60319ebe78a44c58bbb5d6587fd",
+      "local_sha256": "4474911197cd0d6e1af20141dc4862ce4052a60319ebe78a44c58bbb5d6587fd",
+      "changes": []
+    },
+    {
+      "path": "server/llm.py",
+      "upstream_sha256": "1d57f36a85bd8b79e5095c61759641a25b7111a133431078501cb2db879f3914",
+      "local_sha256": "1d57f36a85bd8b79e5095c61759641a25b7111a133431078501cb2db879f3914",
+      "changes": []
+    },
+    {
+      "path": "server/main.py",
+      "upstream_sha256": "1cc994d7a2e05d5ce94ebd9b8600ab011c6da9dc93b65afece2600bb89a1bbc4",
+      "local_sha256": "1cc994d7a2e05d5ce94ebd9b8600ab011c6da9dc93b65afece2600bb89a1bbc4",
+      "changes": []
+    },
+    {
+      "path": "server/pacer.py",
+      "upstream_sha256": "2f3d046eead298f4c8f814971c7c512243d4df83fa1fd214b4a2b5856e806354",
+      "local_sha256": "2f3d046eead298f4c8f814971c7c512243d4df83fa1fd214b4a2b5856e806354",
+      "changes": []
+    },
+    {
+      "path": "server/pipeline.py",
+      "upstream_sha256": "b23e96db8691652db0c2ed6497f6e5bf925c204179ae612bd759c350fd921233",
+      "local_sha256": "b23e96db8691652db0c2ed6497f6e5bf925c204179ae612bd759c350fd921233",
+      "changes": []
+    },
+    {
+      "path": "server/requirements.txt",
+      "upstream_sha256": "de90f086580cff56422f9607b7ffbf78bfa499e28afc470977225c1f9f9d86e0",
+      "local_sha256": "de90f086580cff56422f9607b7ffbf78bfa499e28afc470977225c1f9f9d86e0",
+      "changes": []
+    },
+    {
+      "path": "server/session.py",
+      "upstream_sha256": "f5e6f0e9778a5044e8056e24c0096b8f8ce05b777a1465598472357725e22ef2",
+      "local_sha256": "f5e6f0e9778a5044e8056e24c0096b8f8ce05b777a1465598472357725e22ef2",
+      "changes": []
+    },
+    {
+      "path": "server/tools/pc_client.py",
+      "upstream_sha256": "74d6014fb690649d4df0ecb2a5ab38d90b28ba1e1525c4d5e888d28cf3730944",
+      "local_sha256": "74d6014fb690649d4df0ecb2a5ab38d90b28ba1e1525c4d5e888d28cf3730944",
+      "changes": []
+    },
+    {
+      "path": "server/tools/smoke_echo.py",
+      "upstream_sha256": "fdab95d317c562601e64001c9710762b51e0f120c6db8c34473ad8caacbdddbf",
+      "local_sha256": "fdab95d317c562601e64001c9710762b51e0f120c6db8c34473ad8caacbdddbf",
+      "changes": []
+    },
+    {
+      "path": "server/tts.py",
+      "upstream_sha256": "c296e80f771281c29f42fda23ccb8c716281fd432b2259bcd7f7ff2248bf106d",
+      "local_sha256": "c296e80f771281c29f42fda23ccb8c716281fd432b2259bcd7f7ff2248bf106d",
+      "changes": []
+    },
+    {
+      "path": "server/volc_asr.py",
+      "upstream_sha256": "306e43ee214aa2197124d66c8e4b93f6b4dacc9d6155ccad5e8f77ec24596039",
+      "local_sha256": "306e43ee214aa2197124d66c8e4b93f6b4dacc9d6155ccad5e8f77ec24596039",
+      "changes": []
+    },
+    {
+      "path": "server/volc_proto.py",
+      "upstream_sha256": "43b8af7c9356de60f40376fc9de9211835e32837ae97d5e46963a4a9660d7731",
+      "local_sha256": "43b8af7c9356de60f40376fc9de9211835e32837ae97d5e46963a4a9660d7731",
+      "changes": []
+    },
+    {
+      "path": "server/volc_tts.py",
+      "upstream_sha256": "c8e48b67e45e1e6919491b884d7978c929b05fc4d362a069f6ca39be772a276b",
+      "local_sha256": "c8e48b67e45e1e6919491b884d7978c929b05fc4d362a069f6ca39be772a276b",
+      "changes": []
+    }
+  ]
+}

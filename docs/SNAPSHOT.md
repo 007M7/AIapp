@@ -4,6 +4,11 @@
 
 | 本仓快照 | 正本位置(主仓) | 复制的时点 |
 |---|---|---|
+| `docs/09-issue-list.md` | `AI_figure/docs/product/09-issue-list.md` | 2026-10-03 |
+| `docs/18-firmware-key-semantics-req.md` | `AI_figure/docs/product/18-firmware-key-semantics-req.md` | 2026-10-03 |
+| `docs/21-mobile-product-baseline.md` | `AI_figure/docs/product/21-mobile-product-baseline.md` | 2026-10-03 |
+| `docs/22-wechat-miniprogram-prd.md` | `AI_figure/docs/product/22-wechat-miniprogram-prd.md` | 2026-10-03 |
+| `docs/23-android-ios-app-prd.md` | `AI_figure/docs/product/23-android-ios-app-prd.md` | 2026-10-03 |
 | `docs/14-miniprogram-server-design.md` | `AI_figure/docs/product/14-*.md` | 2026-09-30 |
 | `docs/19-miniprogram-ia-prd.md` | `AI_figure/docs/product/19-*.md` | 2026-09-30 |
 | `docs/20-asset-and-art-inventory.md` | `AI_figure/docs/product/20-*.md` | 2026-09-30 |
@@ -27,3 +32,17 @@
 | 产品定位 / 人群研究 / 数字口径 / 承诺文本 / PRD / 素材清单 | **主仓 `AI_figure/docs/product/`** |
 | 设备侧规格(引脚、状态机、协议) | 主仓 `AGENT.md` |
 | 服务端规格与表结构、API | 主仓 `SERVER.md` 与 `docs/product/14-*.md`(14 在本仓也有快照) |
+
+## 2026-10-03 同步记录
+
+14／19 已同步端侧整理说明；新增 21～23 快照并纳入 check 比对。本目录 README 和 REPOSITORY-MAP 为本仓工作说明，不是产品正本快照。
+
+## 2026-10-06 同步记录
+
+app-todo.md、app-frontend-content-plan.md、app-foundation-research-execution.md 已同步主仓研究完成状态；新增 app-first-screen-ab-v0.1.md 首屏收敛稿快照。两版原型与用户测试未完成。研究报告正本仍在 AI_figure/docs/research/，原始来源快照仍在仓库外，未复制进 App 仓。
+
+## 2026-10-11 设备基线同步
+
+18/21/22/23 与 app-todo 已更新并同步；新增 app-device-interaction-baseline.md 的正本在 AI_figure/docs/product/，本仓副本字节一致。当前 check 尚未自动纳入新增文件，需手动比对。仅文档更新，没有实现设备控制或修改已冻结发布范围。
+
+2026-10-11：新增 firmware-evaluation-request.md，正本位于 AI_figure/docs/product/；同内容副本已逐字节比对，尚未加入自动快照列表。

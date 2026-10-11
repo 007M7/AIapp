@@ -23,6 +23,9 @@ miniprogram/**/.miniprogram-cache/
 # prototype/*.png
 
 # 临时
+models/**/*.blend1
+models/**/*.blend2
+models/**/__pycache__/
 tmp/
 .tmp/
 
@@ -31,3 +34,13 @@ ios/build/
 ios/dist/
 ios/Payload/
 ios/*.ipa
+
+# XcodeGen 每次从 project.yml 生成工程
+ios/*.xcodeproj/
+
+# Python cloud service: local environments, caches and credentials
+server/.venv/
+**/__pycache__/
+*.py[cod]
+server/deploy/psk.secrets
+server/*.env

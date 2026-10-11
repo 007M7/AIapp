@@ -1,0 +1,7 @@
+# Generated review pages: edit prototype/src/, not these outputs.
+prototype/index.html linguist-generated=true
+prototype/overview.html linguist-generated=true
+prototype/pages/*.html linguist-generated=true
+# Handwritten first-screen-ab and model viewers remain visible as source.
+# Keep imported byte hashes stable on Windows checkouts.
+server/** text eol=lf
