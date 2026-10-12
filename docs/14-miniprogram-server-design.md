@@ -546,6 +546,8 @@ post_reactions(post_id, user_id, kind, PRIMARY KEY(post_id, user_id, kind))
 
 ### 5.5 部署形态与容量(D5-5/6/7)
 
+> **2026-10-12容量纠正**：用户确认现有腾讯云2核／2GB／40GB、已有域名。下文“210MB、2G充裕”、aiohttp／SQLite与三进程共享包是历史方案假设，不适用于现Java API／独立Worker＋Python＋PostgreSQL／Redis的总容量。以AIapp/docs/admin/production-deployment-and-operations.md的讨论方案评估自建／托管数据库、资源、443分流、备份及运维；升配、托管及恢复目标未冻结。尚无本轮联合容量或公网部署证据。
+
 **进程布局**:nginx(stream,`ssl_preread`,SNI 分流,443 复用——设备 PSK 域名不变、避免重烧,无 OTA 改地址=拆机)→ stunnel(TLS1.2 纯 PSK,挪进环回,配置死规定)→ voice-gateway;API 走 nginx http TLS 终结 → api(aiohttp,不引 FastAPI)。网关与 API 分两个 systemd 进程(故障隔离:API 崩了设备照聊)。安全组只开 22+443、禁 root 密码登录。内存预算约 210MB,2G 充裕。
 
 **百炼 TTS 并发 ≈3 台:瓶颈对策(按性价比排序)**

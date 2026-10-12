@@ -1,6 +1,6 @@
 # 产品与工程文档入口
 
-后台专项：[已确认Java边界](admin/ADR-002-java-business-core.md) · [J1讨论基线](admin/J1-engineering-and-contract-baseline.md) · [独立 PRD](admin-management-prd.md) · [技术栈评估](admin/ADR-001-stack-and-deployment.md) · [数据与接口](admin/architecture-and-contracts.md) · [页面设计](admin/page-design.md) · [运行与发布](admin/operations.md) · [验收记录](admin/acceptance.md)。
+后台专项：[已确认Java边界](admin/ADR-002-java-business-core.md) · [J1讨论基线](admin/J1-engineering-and-contract-baseline.md) · [部署运维讨论](admin/production-deployment-and-operations.md) · [独立 PRD](admin-management-prd.md) · [技术栈评估](admin/ADR-001-stack-and-deployment.md) · [数据与接口](admin/architecture-and-contracts.md) · [页面设计](admin/page-design.md) · [本地运行](admin/operations.md) · [验收记录](admin/acceptance.md)。
 
 2026-10-11；先读 [实际实现状态](IMPLEMENTATION-STATUS.md) 和 [分类地图](REPOSITORY-MAP.md)。
 
