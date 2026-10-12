@@ -1,5 +1,8 @@
 # AIapp 后台管理
 
+生产架构已确认（2026-10-12）：业务核心Java，一期生活／事件状态，后台与App统一，Python执行AI／语音／设备。见[ADR-002](../docs/admin/ADR-002-java-business-core.md)。下面Python/SQLite为当前可运行迁移基线，不代表Java已实现。
+
+
 Python＋aiohttp / Vue 3＋TypeScript＋Vite / SQLite WAL。设计和状态：[PRD](../docs/admin-management-prd.md)、[架构评估](../docs/admin/ADR-001-stack-and-deployment.md)、[数据与接口](../docs/admin/architecture-and-contracts.md)、[页面设计](../docs/admin/page-design.md)。
 
 ## 安装和本地运行

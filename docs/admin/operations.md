@@ -1,5 +1,7 @@
 # 后台运行、发布与回退
 
+> 2026-10-12：本文保留Python／SQLite本地管理实现的操作说明。用户已确认Java核心、小程序优先，并提供腾讯云2核／2GB／40GB及已有域名；新的[生产部署与运维讨论方案](production-deployment-and-operations.md)分别评估资源、PostgreSQL、Redis、COS、发布及恢复。本文模板未完成该架构迁移，不能直接作为Java生产部署方案。
+
 2026-10-12 · Linux 单机目标，模板已准备；本轮没有执行线上部署。
 
 ## 配置和部署
