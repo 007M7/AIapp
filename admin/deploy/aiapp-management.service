@@ -1,0 +1,27 @@
+[Unit]
+Description=AIapp management API
+After=network.target
+
+[Service]
+Type=simple
+User=aiapp
+Group=aiapp
+WorkingDirectory=/opt/aiapp
+Environment=PYTHONUNBUFFERED=1
+# Set MANAGEMENT_HOST to the admin domain, e.g. admin.example.com.
+EnvironmentFile=/etc/aiapp-management.env
+ExecStart=/opt/aiapp/admin/.venv/bin/python admin/server.py --port 8787 --data /var/lib/aiapp-management --secure-cookie --allowed-host ${MANAGEMENT_HOST}
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/aiapp-management
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

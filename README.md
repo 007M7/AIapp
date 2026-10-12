@@ -11,6 +11,7 @@
 | `ios/` | SwiftUI 原生 App、BLE、API 客户端、构建脚本；业务与真机验收待完成 |
 | `miniprogram/` | 微信小程序单页 BLE 配网与协议测试 |
 | `server/` | Python 设备语音服务、厂商适配、部署模板；App HTTP 业务接口尚缺 |
+| `admin/` | Vue 3／TypeScript 管理页面＋Python/aiohttp；审批、不可变版本、发布／回退、预览执行与审计 |
 | `prototype/src/` | 共用网页原型生成器，设计源文件 |
 | `prototype/pages/`、`index.html`、`overview.html` | 33 页原型及生成产物，设计评审用 |
 | `prototype/first-screen-ab/` | 本机首屏 A/B、3D 展示实验；尚未完整同步 GitHub |
@@ -34,6 +35,8 @@ npm run install-hooks
 预览地址为 `http://127.0.0.1:5173/`。`verify` 会重新生成共用原型，生成器与产物需要一起提交。小程序使用 CommonJS，不加 `type:module`。
 
 iOS 需 macOS/Xcode，见 [iOS 说明](ios/README.md)。Python 服务需独立虚拟环境及 `requirements.txt`，见 [服务启动说明](server/README.md)。Node 检查不能替代原生编译、云端启动或真机联调。
+
+后台管理使用独立前端依赖与 Python 虚拟环境，安装／运行见 [后台 README](admin/README.md)，需求见 [后台 PRD](docs/admin-management-prd.md)。本机访问 `http://127.0.0.1:8787/admin/`；真实数据保存在服务端 SQLite，本地身份试用明确标识，不作为生产登录。
 
 ## HTML 为什么最多
 

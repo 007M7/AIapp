@@ -44,3 +44,9 @@ server/.venv/
 *.py[cod]
 server/deploy/psk.secrets
 server/*.env
+
+# Management: generated build, environments, persistent operational data
+admin/.venv/
+admin/data/
+admin/frontend/dist/
+admin/verification/screenshots/

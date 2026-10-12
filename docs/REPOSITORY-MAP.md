@@ -1,5 +1,7 @@
 # 仓库分类地图
 
+后台新增入口（2026-10-12）：`admin/frontend/` 为Vue3/TypeScript源码，`admin/server.py` 为aiohttp边界，`service.py` 为管理领域，`schema.sql` 为模型；`admin/deploy/` 为Linux模板，`docs/admin/` 为架构、页面、验收和发布资料。`admin/data/` 是真实本机业务数据、`.venv/`和`frontend/dist/`是环境／构建产物，均不入库。
+
 2026-10-11。保留现有路径，避免破坏工程、模型 URL 与原型路由，通过入口区分内容。
 
 ## 运行代码

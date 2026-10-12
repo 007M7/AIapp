@@ -152,7 +152,8 @@ const SECRET_PATTERNS = [
   const hits = [];
   (function walk(d) {
     for (const e of readdirSync(d, { withFileTypes: true })) {
-      if (e.name === ".git") continue;
+      if ([".git", "node_modules", ".venv"].includes(e.name)) continue;
+      if (d === join(ROOT, "admin") && e.name === "data") continue;
       const p = join(d, e.name);
       if (e.isDirectory()) walk(p);
       else if (/\.(js|json|wxml|wxss|html|md|mjs|conf|example|service|txt|swift|plist|pbxproj)$/.test(e.name)) {
@@ -177,6 +178,18 @@ const SECRET_PATTERNS = [
 {
   const MAIN = resolve(ROOT, "../AI_figure");
   const PAIRS = [
+    ["docs/09-issue-list.md", "docs/product/09-issue-list.md"],
+    ["docs/18-firmware-key-semantics-req.md", "docs/product/18-firmware-key-semantics-req.md"],
+    ["docs/21-mobile-product-baseline.md", "docs/product/21-mobile-product-baseline.md"],
+    ["docs/22-wechat-miniprogram-prd.md", "docs/product/22-wechat-miniprogram-prd.md"],
+    ["docs/23-android-ios-app-prd.md", "docs/product/23-android-ios-app-prd.md"],
+    ["docs/app-frontend-content-plan.md", "docs/product/app-frontend-content-plan.md"],
+    ["docs/app-todo.md", "docs/product/app-todo.md"],
+    ["docs/app-first-character-content.md", "docs/product/app-first-character-content.md"],
+    ["docs/app-play-reference.md", "docs/product/app-play-reference.md"],
+    ["docs/app-play-design-v0.1.md", "docs/product/app-play-design-v0.1.md"],
+    ["docs/app-foundation-research-execution.md", "docs/product/app-foundation-research-execution.md"],
+    ["docs/admin-management-prd.md", "docs/product/admin-management-prd.md"],
     ["docs/14-miniprogram-server-design.md", "docs/product/14-miniprogram-server-design.md"],
     ["docs/19-miniprogram-ia-prd.md", "docs/product/19-miniprogram-ia-prd.md"],
     ["docs/20-asset-and-art-inventory.md", "docs/product/20-asset-and-art-inventory.md"],

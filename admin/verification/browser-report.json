@@ -1,0 +1,127 @@
+{
+  "date": "2026-10-12",
+  "environment": "Windows Edge headless; isolated local DB; not production",
+  "checks": [
+    {
+      "name": "Isolated management service starts",
+      "passed": true
+    },
+    {
+      "name": "Local preview login creates authenticated workspace",
+      "passed": true
+    },
+    {
+      "name": "UI upload succeeds",
+      "passed": true
+    },
+    {
+      "name": "UI submit succeeds",
+      "passed": true
+    },
+    {
+      "name": "UI review succeeds",
+      "passed": true
+    },
+    {
+      "name": "UI save succeeds",
+      "passed": true
+    },
+    {
+      "name": "UI submit succeeds",
+      "passed": true
+    },
+    {
+      "name": "UI review succeeds",
+      "passed": true
+    },
+    {
+      "name": "UI save succeeds",
+      "passed": true
+    },
+    {
+      "name": "UI submit succeeds",
+      "passed": true
+    },
+    {
+      "name": "UI review succeeds",
+      "passed": true
+    },
+    {
+      "name": "UI save succeeds",
+      "passed": true
+    },
+    {
+      "name": "UI submit succeeds",
+      "passed": true
+    },
+    {
+      "name": "UI review succeeds",
+      "passed": true
+    },
+    {
+      "name": "Publish cancel leaves environment unchanged",
+      "passed": true
+    },
+    {
+      "name": "UI publish succeeds",
+      "passed": true
+    },
+    {
+      "name": "Publication resolves all four immutable dependencies",
+      "passed": true
+    },
+    {
+      "name": "UI execute succeeds",
+      "passed": true
+    },
+    {
+      "name": "Consumer renders published content and explicit device boundary",
+      "passed": true
+    },
+    {
+      "name": "Real image asset loads",
+      "passed": true
+    },
+    {
+      "name": "Execution survives browser reload",
+      "passed": true
+    },
+    {
+      "name": "Read-only role has no save action",
+      "passed": true
+    },
+    {
+      "name": "UI publish succeeds",
+      "passed": true
+    },
+    {
+      "name": "UI rollback succeeds",
+      "passed": true
+    },
+    {
+      "name": "Rollback restores previous published release",
+      "passed": true
+    },
+    {
+      "name": "UI withdraw succeeds",
+      "passed": true
+    },
+    {
+      "name": "Withdrawn environment has no event action",
+      "passed": true
+    },
+    {
+      "name": "Audit contains publish, rollback and execution",
+      "passed": true
+    },
+    {
+      "name": "390px viewport has no document horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "No uncaught browser exceptions",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

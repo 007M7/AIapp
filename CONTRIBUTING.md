@@ -5,6 +5,8 @@
 
 ## 1. 环境
 
+后台工程（2026-10-12）另用 Python3.12＋aiohttp，以及 `admin/frontend/` 独立的 Vue3／TypeScript／Vite 与锁文件。下面“零依赖”只描述原型／小程序 Node 工具。不得把后台的 `type:module` 或依赖提升到根目录；后台验证与部署见 `admin/README.md`，云端管理检查见 `.github/workflows/admin-checks.yml`。
+
 - **Node ≥ 20**(实测 v24)。**零依赖,不需要 `npm install`。**
 - 需要真机/模拟器时才装微信开发者工具(版本与基础库要求见 `miniprogram/README.md`)。
 - 首次克隆后跑一次:`npm run install-hooks`(启用本地 Git 钩子)。
