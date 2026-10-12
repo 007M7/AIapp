@@ -1,5 +1,10 @@
 # 实际实现状态
 
+## 2026-10-12 生产架构确认
+
+09 §0 D-15～17与[ADR-002](admin/ADR-002-java-business-core.md)已确认Java业务核心、一期生活／事件状态及Java/Python边界。当前代码仍为Python管理基线与设备语音服务，Java工程尚未建立；架构决定、工程实现、生产联调与上线分别记录。
+
+
 ## 2026-10-12 后台增量
 
 独立管理工程位于 `admin/`：Vue3／TypeScript 页面＋Python/aiohttp＋SQLite WAL。素材、角色、内容、事件、审批、发布／回退／下架、消费预览、操作记录与管理员页面已可运行。19个后端测试及30项浏览器验收通过；只接入本地管理事实，自动调度、实体执行及真实App业务尚缺。详见 [验收](admin/acceptance.md) 和 [PRD](admin-management-prd.md)。
