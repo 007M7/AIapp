@@ -14,7 +14,7 @@ struct RootTabView: View {
             CommunityView()
                 .tabItem { Label("社区", systemImage: "person.2") }
             StoreView()
-                .tabItem { Label("商店", systemImage: "bag") }
+                .tabItem { Label("发现", systemImage: "sparkles") }
             MeView()
                 .tabItem { Label("我的", systemImage: "person.crop.circle") }
         }

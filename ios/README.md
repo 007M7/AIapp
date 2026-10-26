@@ -1,5 +1,9 @@
 # iOS App(iPhone)· MVP1 源码工程
 
+> 本轮 UI、架构、构建与治理入口见 [ios/docs](docs/README.md)。新源尚未编译；旧构建仅覆盖 7e82e87。
+
+> **2026-10-03 状态补充**：App 正式范围与实现差距见主仓 23（本仓 `docs/23-android-ios-app-prd.md` 快照），安卓与 iPhone 同期推进 MVP（D-14）。7e82e87 已成功云构建未签名 IPA；未确认签名安装／真机。下文“✅”表示源码承接，不能视作业务验收；本轮开箱已新增步骤和名字草稿恢复，正式命名／首包／契约服务端记录、存图、兑换与退出删除仍未闭环。
+
 > 2026-09-29 初版。**依据**:PRD `19` v1.2(三端同构 IA,§3.1 App 列)、`14` §5.4(API 面)、
 > `18` v1.2(设备侧冻结)、`17` §3.4(承诺文本)、`20`(素材与美术红线)、AIapp prototype(33 页文案)。
 > **性质**:MVP1 源码工程,「自授签名(自签)」交付路径 —— 配合已在跑通的自签工具(下文「签名」节)。
@@ -66,10 +70,7 @@ bash ios/tools/build-ipa.sh  # 自动 xcodegen generate → 编译 → ios/dist/
 移植层自测(不依赖真机,先跑它再上真机):
 
 ```bash
-swift ios/tools/selftest.swift \
-      ios/AIFigure/Device/MiniPB.swift \
-      ios/AIFigure/Device/AesCtr.swift \
-      ios/AIFigure/Device/X25519.swift
+bash ios/tools/run-selftests.sh
 ```
 
 ## 4. 构建与签名(Sideloadly 路线)

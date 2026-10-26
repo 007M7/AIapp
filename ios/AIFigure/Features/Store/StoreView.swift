@@ -1,62 +1,61 @@
 import SwiftUI
 
-/// Tab4 商店(store/index):免费区横幅必须在首屏(消保委红线,PRD §4.3)
-/// + 五架筛选 + 商品列表 + 兑换码入口。iOS 支付自由处理:购买通道待开通(Q-20),
-/// 付费商品先走兑换码;不设占位接口(14 §5.4 刻意缺席)。
+/// Tab4 发现：沿用 packs 数据与 store 路由，按角色、故事、语音浏览。
 struct StoreView: View {
     @EnvironmentObject private var env: AppEnv
-    @State private var packs: [PackItem] = []
-    @State private var category = "角色"
-    @State private var configured = true
+    @ObservedObject private var config = ServerConfig.shared
+    @StateObject private var remote = RemoteCollection<PackItem>()
+    private var packs: [PackItem] { remote.items }
+    @State private var category = "全部"
 
-    private static let categories = ["角色", "外观", "语音", "事件", "实物"]
+    private static let categories = ["全部", "角色", "故事", "语音"]
 
     private var filtered: [PackItem] {
-        packs.filter { $0.category == nil || $0.category == category }
+        packs.filter { pack in
+            if category == "全部" { return true }
+            switch category {
+            case "角色": return ["character", "角色"].contains(pack.category ?? "")
+            case "故事": return ["event", "事件", "story", "故事"].contains(pack.category ?? "")
+            case "语音": return ["voice", "语音"].contains(pack.category ?? "")
+            default: return false
+            }
+        }
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 14) {
-                    AIBadgeBar()
-                    freeBanner
-                    Picker("货架", selection: $category) {
+                    Picker("内容分类", selection: $category) {
                         ForEach(Self.categories, id: \.self) { Text($0).tag($0) }
                     }
                     .pickerStyle(.segmented)
-                    if filtered.isEmpty {
-                        EmptyStateCard(title: Copy.emptyStoreTitle, note: emptyNote)
+                    CollectionStatusCard(phase: remote.phase, emptyTitle: "暂无内容",
+                                         emptyNote: "") { Task { await load() } }
+                    if remote.phase == .loaded && filtered.isEmpty {
+                        EmptyStateCard(title: "暂无内容", note: "")
                     }
                     ForEach(filtered) { p in
                         NavigationLink { PackDetailView(pack: p) } label: { packRow(p) }
                             .buttonStyle(.plain)
                     }
-                    redeemCard
-                    Text(Copy.storeFooterNote).font(AppFont.caption()).foregroundStyle(.secondary)
+                    freeBanner
+
                 }
                 .padding(16)
             }
             .background(T.paper)
-            .navigationTitle("商店")
-            .toolbar {
-                NavigationLink { RedeemView() } label: { TagPill("兑换码") }
-            }
-            .task { await load() }
+            .navigationTitle("发现")
+            .task(id: config.revision) { await load() }
             .refreshable { await load() }
         }
     }
 
-    private var emptyNote: String {
-        configured ? Copy.emptyStoreNote : "先在「我的 → 设置」里配好服务器"
-    }
-
     private func load() async {
-        configured = ServerConfig.shared.isConfigured
-        packs = (try? await env.api.packs()) ?? []
+        await remote.load(config: config) { try await env.api.packs() }
     }
 
-    /// 首屏必现:永久免费区横幅
+    /// 免费内容入口
     private var freeBanner: some View {
         NavigationLink { FreeZoneView() } label: {
             HStack {
@@ -81,11 +80,7 @@ struct StoreView: View {
                 Text(p.summary ?? p.packLine).font(AppFont.caption()).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer()
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(p.priceText).font(AppFont.headline(14)).foregroundStyle(T.mid)
-                Text(p.free == false ? "可兑换" : "免费")
-                    .font(AppFont.caption(11)).foregroundStyle(.secondary)
-            }
+            Image(systemName: "chevron.right").font(AppFont.caption()).foregroundStyle(.secondary)
         }
         .card()
     }
@@ -160,7 +155,7 @@ struct RedeemView: View {
                     PrimaryButton(title: "兑换") { message = redeemNote }
                 }
                 .card()
-                Text(Copy.redeemIntro).font(AppFont.caption()).foregroundStyle(.secondary)
+
                 if !message.isEmpty { Text(message).font(AppFont.body(13)).foregroundStyle(.secondary) }
             }
             .padding(16)
@@ -170,6 +165,6 @@ struct RedeemView: View {
     }
 
     private var redeemNote: String {
-        code.isEmpty ? "先输入卡上的码。" : "兑换通道还没开通:兑换接口随支付主体一起上线(09 Q-30 依赖)。你的码不会作废。"
+        code.isEmpty ? "先输入卡上的码。" : "兑换暂未开放"
     }
 }

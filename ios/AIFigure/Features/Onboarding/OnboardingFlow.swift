@@ -1,24 +1,24 @@
 import SwiftUI
 
 /// 首次开箱仪式(`19` §6.1,六步):装备须知 → 绑定 → 认主 → 第一张角色卡 → 契约签署 → 完成。
-/// 每一步均可跳过;断点续做(进度存 UserDefaults);不阻塞进入 Tab1。
+/// 本地介绍草稿可恢复；不代表服务端认主、角色入册或正式签署。
 struct OnboardingFlow: View {
     @EnvironmentObject private var env: AppEnv
-    @State private var step = 0
-    @State private var name = "小鲸"
-    @State private var signed = false
+    @State private var draft = OnboardingDraft.read()
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("第 \(step + 1) 步,共 6 步").font(AppFont.caption()).foregroundStyle(.secondary)
+                Text("第 \(draft.step + 1) 步,共 6 步").font(AppFont.caption()).foregroundStyle(.secondary)
                 Spacer()
-                if step < 5 {
+                Button("稍后继续") { env.showOnboarding = false }
+                    .font(AppFont.caption())
+                if draft.step < 5 {
                     Button("跳过") { next() }.font(AppFont.caption()).foregroundStyle(.secondary)
                 }
             }
             .padding(16)
-            TabView(selection: $step) {
+            TabView(selection: $draft.step) {
                 intro.tag(0)
                 bind.tag(1)
                 adopt.tag(2)
@@ -29,9 +29,10 @@ struct OnboardingFlow: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
         }
         .background(T.paper)
+        .onChange(of: draft) { value in value.save() }
     }
 
-    private func next() { withAnimation { step = min(step + 1, 5) } }
+    private func next() { withAnimation { draft.step = min(draft.step + 1, 5) } }
 
     // MARK: 1 装备须知
 
@@ -49,7 +50,7 @@ struct OnboardingFlow: View {
             }
             .card()
             PrimaryButton(title: "开始") { next() }
-            Text(Copy.onboardingSkippable).font(AppFont.caption()).foregroundStyle(.secondary)
+
         }
     }
 
@@ -58,56 +59,54 @@ struct OnboardingFlow: View {
     private var bind: some View {
         Flow {
             Text("先把你的手办连上").font(AppFont.title(24)).foregroundStyle(T.ink)
-            Text("连不上也没关系,可以跳过这一步先去认主").font(AppFont.body(13)).foregroundStyle(.secondary)
+            Text("也可以稍后绑定，先看看开箱介绍。").font(AppFont.body(13)).foregroundStyle(.secondary)
             NavigationLink { BindView() } label: {
-                MenuRow(icon: "qrcode", title: Copy.bindTitle, note: "扫码 / 输入 SN")
+                MenuRow(icon: "qrcode", title: Copy.bindTitle, note: "输入序列号 · 连接 Wi-Fi")
             }
             .card()
-            SecondaryButton(title: "先领一只「虚拟手办」看看") { next() }
-            Text(Copy.bindFooter).font(AppFont.caption()).foregroundStyle(.secondary)
+            SecondaryButton(title: "稍后绑定 · 继续了解") { next() }
         }
     }
 
-    // MARK: 3 认主(填名字;第一句自我介绍走 text-turn,普通回合即可,零新增固件)
+    // MARK: 3 名字草稿（服务端认主未接入）
 
     private var adopt: some View {
         Flow {
             Text(Copy.onboardingAdoptTitle).font(AppFont.title(24)).foregroundStyle(T.ink)
-            Text(Copy.onboardingAdoptIntro).font(AppFont.body(13)).foregroundStyle(.secondary)
+            Text("名字草稿").font(AppFont.body(13)).foregroundStyle(.secondary)
             VStack(spacing: 8) {
                 BreathingOrb()
-                TextField("它的名字", text: $name)
+                TextField("它的名字", text: $draft.name)
                     .font(.system(size: 24, weight: .semibold, design: .serif))
                     .multilineTextAlignment(.center)
             }
             .card()
             PrimaryButton(title: "就这个") { next() }
-            Text("按下去,它会用这个名字叫你。").font(AppFont.caption()).foregroundStyle(.secondary)
+            Text("仅保存到本机").font(AppFont.caption()).foregroundStyle(.secondary)
         }
     }
 
-    // MARK: 4 第一张角色卡(免费入册;端点 #22 install,失败不阻塞)
+    // MARK: 4 第一张角色卡预览（不授予权益）
 
     private var firstCard: some View {
         Flow {
             Text(Copy.onboardingCardTitle).font(AppFont.title(24)).foregroundStyle(T.ink)
-            Text(Copy.onboardingCardIntro).font(AppFont.body(13)).foregroundStyle(.secondary)
+            Text("角色卡预览").font(AppFont.body(13)).foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 6) {
-                Text("\(name) · 深海书简").font(AppFont.headline()).foregroundStyle(T.ink)
-                Text("角色包 · 含连载 6 章").font(AppFont.caption()).foregroundStyle(.secondary)
-                TagPill("免费")
+                Text("\(draft.name) · 深海书简").font(AppFont.headline()).foregroundStyle(T.ink)
+                Text("未入册").font(AppFont.caption()).foregroundStyle(.secondary)
+                TagPill("预览")
             }
             .card()
-            PrimaryButton(title: "放进收藏柜") { next() }
+            PrimaryButton(title: "看下一步") { next() }
         }
     }
 
-    // MARK: 5 契约签署(四条逐字;虚拟仪式,设备无手势)
+    // MARK: 5 阅读契约（不是正式签署）
 
     private var sign: some View {
         Flow {
-            Text(Copy.onboardingSignTitle).font(AppFont.title(22)).foregroundStyle(T.ink)
-            Text(Copy.onboardingSignIntro).font(AppFont.body(13)).foregroundStyle(.secondary)
+            Text("读一读这份契约").font(AppFont.title(22)).foregroundStyle(T.ink)
             VStack(alignment: .leading, spacing: 8) {
                 CapLabel(Copy.contractTitle)
                 ForEach(Copy.contractItems, id: \.self) { line in
@@ -115,12 +114,11 @@ struct OnboardingFlow: View {
                 }
             }
             .card()
-            PrimaryButton(title: "签署") {
-                signed = true
-                UserDefaults.standard.set(true, forKey: "contract.signed.v1")
+            PrimaryButton(title: "我已读过 · 继续") {
+                draft.contractRead = true
                 next()
             }
-            Text("签署在 App 里完成;包装里也有一张实物契约卡。").font(AppFont.caption()).foregroundStyle(.secondary)
+            Text("正式签署暂未开放").font(AppFont.caption()).foregroundStyle(.secondary)
         }
     }
 
@@ -128,16 +126,16 @@ struct OnboardingFlow: View {
 
     private var done: some View {
         Flow {
-            Text("好了,\n它认识你了").font(AppFont.title(26)).foregroundStyle(T.ink)
+            Text("介绍完成").font(AppFont.title(26)).foregroundStyle(T.ink)
             VStack(spacing: 8) {
-                CapLabel("开箱第一句话卡")
+                CapLabel("角色台词预览")
                 BreathingOrb()
                 Text(Copy.onboardingFirstWords).font(AppFont.headline(17)).foregroundStyle(T.ink)
-                Text("—— \(name) · 今天").font(AppFont.caption()).foregroundStyle(.secondary)
+                Text("—— \(draft.name) · 今天").font(AppFont.caption()).foregroundStyle(.secondary)
             }
             .card()
-            ShareLink(item: "\(Copy.onboardingFirstWords) —— \(name) · AI 手办") {
-                Label("分享这张卡", systemImage: "square.and.arrow.up")
+            ShareLink(item: "\(Copy.onboardingFirstWords) —— \(draft.name) · AI 手办") {
+                Label("分享这句预览文字", systemImage: "square.and.arrow.up")
                     .font(AppFont.headline())
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 13)

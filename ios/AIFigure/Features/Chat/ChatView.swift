@@ -23,7 +23,7 @@ struct ChatView: View {
                 ScrollView {
                     VStack(spacing: 10) {
                         if bubbles.isEmpty {
-                            EmptyStateCard(title: "说第一句吧", note: "它会把你们聊过的事,记进「档案」的记忆里")
+                            EmptyStateCard(title: "说第一句吧", note: "发送文字开始聊天")
                                 .padding(.top, 24)
                         }
                         ForEach(bubbles) { b in
@@ -73,7 +73,7 @@ struct ChatView: View {
                 .disabled(sending || input.isEmpty)
             }
             .padding(.horizontal, 14).padding(.vertical, 8)
-            Text(Copy.chatDeviceHint).font(AppFont.caption(11)).foregroundStyle(.tertiary)
+            Text("回复在手机播放").font(AppFont.caption(11)).foregroundStyle(.tertiary)
         }
         .background(T.paper)
         .navigationTitle(character.displayName)

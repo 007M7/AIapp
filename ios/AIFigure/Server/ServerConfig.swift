@@ -8,19 +8,24 @@ import Combine
 final class ServerConfig: ObservableObject {
     static let shared = ServerConfig()
 
+    private let defaults: UserDefaults
+
     private static let baseURLKey = "server.baseURL"
     private static let tokenKey = "server.token"
 
+    @Published private(set) var revision = UUID()
+
     @Published var baseURL: String {
-        didSet { UserDefaults.standard.set(baseURL, forKey: Self.baseURLKey) }
+        didSet { defaults.set(baseURL, forKey: Self.baseURLKey); revision = UUID() }
     }
     @Published var token: String {
-        didSet { UserDefaults.standard.set(token, forKey: Self.tokenKey) }
+        didSet { defaults.set(token, forKey: Self.tokenKey); revision = UUID() }
     }
 
-    private init() {
-        baseURL = UserDefaults.standard.string(forKey: Self.baseURLKey) ?? ""
-        token = UserDefaults.standard.string(forKey: Self.tokenKey) ?? ""
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        baseURL = defaults.string(forKey: Self.baseURLKey) ?? ""
+        token = defaults.string(forKey: Self.tokenKey) ?? ""
     }
 
     var isConfigured: Bool {

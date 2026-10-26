@@ -4,17 +4,16 @@ import SwiftUI
 /// "我的角色"≠设备管理页(PRD §4.3);空态引导"领养第一只手办"。
 struct ArchiveHomeView: View {
     @EnvironmentObject private var env: AppEnv
-    @State private var characters: [FigureCharacter] = []
-    @State private var configured = true
+    @ObservedObject private var config = ServerConfig.shared
+    @StateObject private var remote = RemoteCollection<FigureCharacter>()
+    private var characters: [FigureCharacter] { remote.items }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 14) {
-                    AIBadgeBar()
-                    if characters.isEmpty {
-                        EmptyStateCard(title: Copy.emptyCharactersTitle, note: emptyNote)
-                    }
+                    CollectionStatusCard(phase: remote.phase, emptyTitle: Copy.emptyCharactersTitle,
+                                         emptyNote: Copy.emptyCharactersNote) { Task { await load() } }
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
                         ForEach(characters) { c in
                             NavigationLink { CharacterDetailView(character: c) } label: {
@@ -23,24 +22,18 @@ struct ArchiveHomeView: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    assetsCard
                 }
                 .padding(16)
             }
             .background(T.paper)
             .navigationTitle("我的角色")
-            .task { await load() }
+            .task(id: config.revision) { await load() }
             .refreshable { await load() }
         }
     }
 
-    private var emptyNote: String {
-        configured ? Copy.emptyCharactersNote : "先在「我的 → 设置」里配好服务器,你的角色会出现在这里"
-    }
-
     private func load() async {
-        configured = ServerConfig.shared.isConfigured
-        characters = (try? await env.api.characters()) ?? []
+        await remote.load(config: config) { try await env.api.characters() }
     }
 
     private func characterCard(_ c: FigureCharacter) -> some View {
@@ -59,17 +52,6 @@ struct ArchiveHomeView: View {
         .background(RoundedRectangle(cornerRadius: 14).fill(.white))
     }
 
-    private var assetsCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            CapLabel("资产账")
-            NavigationLink { AssetsLedgerView(characters: characters) } label: {
-                Text("全部 ›").font(AppFont.caption()).foregroundStyle(T.mid)
-            }
-            Text(Copy.assetsNote).font(AppFont.body(13)).foregroundStyle(.secondary)
-        }
-        .frame(alignment: .leading)
-        .card()
-    }
 }
 
 /// 资产账(archive/assets):只增不减,每一件都有来处
@@ -83,10 +65,6 @@ struct AssetsLedgerView: View {
                 }
                 LabeledRow(title: "编号 · \(characters.compactMap(\.number).first ?? "待颁发")", note: "与底座金属铭牌一致")
                 LabeledRow(title: "契约 · 四件事", note: "签署后入账")
-            } header: {
-                Text(Copy.assetsIntro)
-            } footer: {
-                Text(Copy.assetsNote)
             }
         }
         .navigationTitle("资产账")

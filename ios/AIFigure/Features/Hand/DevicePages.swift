@@ -15,7 +15,7 @@ struct DeviceManualView: View {
                     }
                     .card()
                 }
-                Text(Copy.manualFooter).font(AppFont.caption()).foregroundStyle(.secondary)
+
             }
             .padding(16)
         }
@@ -42,7 +42,7 @@ struct DeviceSettingsView: View {
                         .onTapGesture { confirmingUnbind = true }
                 }
                 .card()
-                Text(Copy.deviceSettingsNote).font(AppFont.caption()).foregroundStyle(.secondary)
+
                 if !message.isEmpty { Text(message).font(AppFont.body(13)).foregroundStyle(.secondary) }
             }
             .padding(16)
