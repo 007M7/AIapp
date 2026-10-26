@@ -29,7 +29,7 @@ jobs:
       - name: 生成工程、自测与未签名编译
         env:
           BUILD_CONFIGURATION: ${{ inputs.configuration || 'Release' }}
-        run: bash ios/tools/build-ipa.sh
+        run: CODE_SIGNING_ALLOWED=NO bash ios/tools/build-ipa.sh
       - name: 构建模拟器与原生界面截图
         if: inputs.configuration == 'Debug'
         run: bash ios/tools/preview-simulator.sh
