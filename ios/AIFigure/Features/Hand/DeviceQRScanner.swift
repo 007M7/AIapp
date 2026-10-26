@@ -15,6 +15,7 @@ final class DeviceScannerController: UIViewController, AVCaptureMetadataOutputOb
     private var preview: AVCaptureVideoPreviewLayer?
     private var delivered = false
     private var configured = false
+    private var dismissed = false
 
     init(onCode: @escaping (String) -> Void) { self.onCode = onCode; super.init(nibName: nil, bundle: nil) }
     required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
@@ -24,7 +25,10 @@ final class DeviceScannerController: UIViewController, AVCaptureMetadataOutputOb
         case .authorized: configure()
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .video) { allowed in
-                DispatchQueue.main.async { if allowed { self.configure() } else { self.showMessage("请允许相机访问，或返回后手动连接") } }
+                DispatchQueue.main.async {
+                    guard !self.dismissed else { return }
+                    if allowed { self.configure() } else { self.showMessage("请允许相机访问，或返回后手动连接") }
+                }
             }
         default: showMessage("请在系统设置中允许相机访问，或返回后手动连接")
         }
@@ -32,6 +36,7 @@ final class DeviceScannerController: UIViewController, AVCaptureMetadataOutputOb
     override func viewDidLayoutSubviews() { super.viewDidLayoutSubviews(); preview?.frame = view.bounds }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        dismissed = true
         queue.async { self.capture.stopRunning() }
     }
     private func showMessage(_ text: String) {
@@ -42,7 +47,7 @@ final class DeviceScannerController: UIViewController, AVCaptureMetadataOutputOb
             label.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24), label.centerYAnchor.constraint(equalTo: view.centerYAnchor)])
     }
     private func configure() {
-        guard !configured else { return }; configured = true
+        guard !configured, !dismissed else { return }; configured = true
         guard let camera = AVCaptureDevice.default(for: .video), let input = try? AVCaptureDeviceInput(device: camera),
               capture.canAddInput(input) else { showMessage("相机暂不可用，请返回后手动连接"); return }
         capture.addInput(input)
@@ -54,7 +59,7 @@ final class DeviceScannerController: UIViewController, AVCaptureMetadataOutputOb
         queue.async { self.capture.startRunning() }
     }
     func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput objects: [AVMetadataObject], from connection: AVCaptureConnection) {
-        guard !delivered, let code = objects.compactMap({ ($0 as? AVMetadataMachineReadableCodeObject)?.stringValue }).first else { return }
+        guard !delivered, !dismissed, let code = objects.compactMap({ ($0 as? AVMetadataMachineReadableCodeObject)?.stringValue }).first else { return }
         delivered = true; queue.async { self.capture.stopRunning() }; onCode(code)
     }
 }
