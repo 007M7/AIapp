@@ -19,6 +19,9 @@ final class LabURLProtocol: URLProtocol {
             response = """
             {"data":{"device_id":"test","device_online":true,"firmware":"test","supports_identify":true,"can_identify":true,"telemetry_fresh":true,"telemetry_at":1,"pending_operation_id":null,"busy":\(Self.busy),"service_ready":true,"telemetry":{"state":"\(Self.telemetryState)","usb_present":true,"battery_mv":1200,"battery_validation":"unverified","battery_percent":null,"charging":null,"rssi":-40}}}
             """
+        } else if path == "/lab/v1/chat" {
+            assert(request.url?.query?.contains("since=3") == true)
+            response="{\"data\":{\"turns\":[],\"revision\":3,\"oldest\":null,\"has_older\":false,\"device_id\":\"test\",\"reset\":false}}"
         } else {
             if request.httpMethod == "POST" {
                 assert(request.value(forHTTPHeaderField: "Idempotency-Key") != nil)
@@ -63,6 +66,18 @@ final class LabURLProtocol: URLProtocol {
         assert(result.status == "completed" && !result.waiting)
         _ = try await client.operation(result.id)
         _ = try await client.voice(Data(repeating:0,count:16000), key:UUID())
+        _ = try await client.interrupt(key:UUID())
+        _ = try await client.volume(50,key:UUID())
+        _ = try await client.text("测试文字",key:UUID())
+        let history=try await client.chat(since:3); assert(history.revision==3)
+        let row=LabChatTurn(id:"turn-one",position:1,source:"device_voice",operationId:nil,created:1,updated:2,revision:2,userText:"测试问题",userStatus:"final",assistantText:"测试回复",assistantStatus:"interrupted")
+        let page=LabChatPage(turns:[row],revision:2,oldest:1,hasOlder:false,deviceId:"test",reset:false)
+        var cache=ChatHistoryCache();cache.merge(page);cache.merge(page)
+        assert(cache.turns.count==1 && cache.turns[0].assistantNote=="已打断")
+        let scope="test-only-"+UUID().uuidString
+        try cache.save(scope:scope)
+        let saved=try ChatHistoryCache.load(scope:scope);assert(saved.turns[0].userText=="测试问题")
+        try FileManager.default.removeItem(at:ChatHistoryCache.url(scope:scope))
         LabURLProtocol.failureStatus = 401
         do { _ = try await client.status(); fatalError("Unauthorized request accepted") }
         catch let error as LabClientError { assert(error.status == 401) }

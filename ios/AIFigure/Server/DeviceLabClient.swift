@@ -1,6 +1,7 @@
 import Foundation
 
 struct LabTelemetry: Decodable {
+    let volume: Int?
     let state: String
     let usbPresent: Bool
     let batteryMv: Int
@@ -25,6 +26,10 @@ struct LabDeviceStatus: Decodable {
     let supportsMobileVoice: Bool?
     let canMobileVoice: Bool?
     let powerMode: String?
+    let supportsInterrupt: Bool?
+    let supportsVolume: Bool?
+    let canInterrupt: Bool?
+    let canSetVolume: Bool?
 
     func canResumeAfterReconnect(_ operation: LabOperation) -> Bool {
         operation.status == "unknown" &&
@@ -62,9 +67,9 @@ struct LabOperation: Decodable {
         case "accepted": return "服务器已受理"
         case "sent": return "已发送，等待设备回执"
         case "running": return "设备正在执行"
-        case "completed": return kind == "voice" ? "回答已播放完毕" : "设备已执行，请核对短鸣"
+        case "completed": return ["voice","text"].contains(kind ?? "") ? "回答已播放完毕" : kind == "interrupt" ? "已停止回答" : kind == "volume" ? "音量已调整" : "设备已执行，请核对短鸣"
         case "rejected": return "设备未执行"
-        case "failed": return "设备执行失败"
+        case "failed": return ["mobile_interrupted","physical_interrupted"].contains(code) ? "已打断" : "设备执行失败"
         default: return "结果未确认，不会自动重发"
         }
     }
@@ -125,14 +130,16 @@ final class DeviceLabClient {
         let error: Detail
     }
 
-    private func request<T: Decodable>(_ path: String, key: UUID? = nil, audio: Data? = nil) async throws -> T {
-        var request = URLRequest(url: base.appendingPathComponent(path))
+    private func request<T: Decodable>(_ path: String, key: UUID? = nil, audio: Data? = nil, json: Data? = nil, query: [URLQueryItem] = []) async throws -> T {
+        var components = URLComponents(url: base.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        if !query.isEmpty { components.queryItems = query }
+        var request = URLRequest(url: components.url!)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.timeoutInterval = 6
         if let key {
             request.httpMethod = "POST"
-            request.httpBody = audio ?? Data("{}".utf8)
+            request.httpBody = audio ?? json ?? Data("{}".utf8)
             request.setValue(audio == nil ? "application/json" : "application/octet-stream", forHTTPHeaderField: "Content-Type")
             request.setValue(key.uuidString, forHTTPHeaderField: "Idempotency-Key")
         }
@@ -151,6 +158,22 @@ final class DeviceLabClient {
 
     func status() async throws -> LabDeviceStatus { try await request("lab/v1/status") }
     func identify(key: UUID) async throws -> LabOperation { try await request("lab/v1/identify", key: key) }
+    func interrupt(key: UUID) async throws -> LabOperation { try await request("lab/v1/interrupt", key: key) }
+    func volume(_ value: Int, key: UUID) async throws -> LabOperation {
+        guard (0...100).contains(value) else { throw LabClientError(status:400,message:"音量需为0至100") }
+        return try await request("lab/v1/volume",key:key,json:JSONSerialization.data(withJSONObject:["volume":value]))
+    }
+    func text(_ value: String, key: UUID) async throws -> LabOperation {
+        guard !value.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty, value.count <= 1000 else { throw LabClientError(status:400,message:"请输入1至1000字文字") }
+        return try await request("lab/v1/text",key:key,json:JSONSerialization.data(withJSONObject:["text":value]))
+    }
+    func chat(since: Int = 0, before: Int? = nil) async throws -> LabChatPage {
+        guard since >= 0, before == nil || before! > 0 else { throw LabClientError(status:400,message:"聊天分页无效") }
+        var query=[URLQueryItem(name:"limit",value:"30")]
+        if let before { query.append(URLQueryItem(name:"before",value:String(before))) }
+        else if since > 0 { query.append(URLQueryItem(name:"since",value:String(since))) }
+        return try await request("lab/v1/chat",query:query)
+    }
     func voice(_ pcm: Data, key: UUID) async throws -> LabOperation {
         guard (16000...960000).contains(pcm.count), pcm.count % 2 == 0 else {
             throw LabClientError(status: 400, message: "请录制0.5至30秒语音")

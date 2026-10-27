@@ -58,6 +58,9 @@ final class DevicePilotStore: ObservableObject {
     @Published private(set) var sending = false
     @Published private(set) var message = ""
     @Published private(set) var connected = false
+    @Published private(set) var interrupting = false
+    @Published private(set) var volumeSending = false
+    @Published private(set) var volumeMessage = ""
     private var client: DeviceLabClient?
     private var generation = UUID()
     private var polling: Task<Void, Never>?
@@ -83,6 +86,60 @@ final class DevicePilotStore: ObservableObject {
     var canTalk: Bool {
         connected && message.isEmpty && status?.canMobileVoice == true && !sending && !requestPending && !uncertain
     }
+    var canInterrupt: Bool { connected && message.isEmpty && status?.canInterrupt == true && !requestPending && !interrupting }
+    var canBeginVoice: Bool { canTalk || canInterrupt }
+    var chatScope: String { address + "|" + (status?.deviceId ?? "") }
+    var canSetVolume: Bool { connected && status?.canSetVolume == true && !volumeSending }
+    var volume: Int? { status?.telemetryFresh == true ? status?.telemetry?.volume : nil }
+
+    func chat(since: Int = 0, before: Int? = nil) async throws -> LabChatPage {
+        guard let client, connected else { throw LabClientError(status:nil,message:"离线记录") }
+        return try await client.chat(since:since,before:before)
+    }
+    func prepareVoice() async -> Bool {
+        if canTalk { return true }
+        guard canInterrupt, let client else { return false }
+        interrupting=true;requestPending=true
+        let stamp=generation
+        defer { if generation == stamp { interrupting=false;requestPending=false } }
+        do {
+            var result=try await client.interrupt(key:UUID())
+            for _ in 0..<30 {
+                guard stamp==generation,!Task.isCancelled else { return false }
+                if !result.waiting { break }
+                try await Task.sleep(nanoseconds:100_000_000)
+                result=try await client.operation(result.id)
+            }
+            guard stamp==generation else { return false }
+            guard result.status=="completed" else { message=result.label;return false }
+            operation=result;sending=false;uncertain=false;requestPending=false;message=""
+            await refresh()
+            return canTalk
+        } catch {
+            if stamp==generation { message="打断结果未确认，请核对手办后重试";uncertain=true }
+            return false
+        }
+    }
+    func setVolume(_ value: Int) {
+        guard canSetVolume,let client else { return }
+        volumeSending=true;volumeMessage=""
+        let stamp=generation
+        Task {
+            defer { if stamp==generation { volumeSending=false } }
+            do {
+                var result=try await client.volume(value,key:UUID())
+                for _ in 0..<30 {
+                    guard stamp==generation else { return }
+                    if !result.waiting { break }
+                    try await Task.sleep(nanoseconds:100_000_000)
+                    result=try await client.operation(result.id)
+                }
+                guard stamp==generation else { return }
+                volumeMessage=result.status=="completed" ? "" : "音量结果未确认，请查看当前音量"
+                await refresh()
+            } catch { if stamp==generation { volumeMessage="音量未能确认，请重试" } }
+        }
+    }
     var powerTitle: String {
         guard status?.deviceOnline == true, status?.telemetryFresh == true,
               let telemetry = status?.telemetry else { return "供电状态未知" }
@@ -106,7 +163,7 @@ final class DevicePilotStore: ObservableObject {
         if sending { uncertain = true; sending = false }
         requestPending = false
         generation = UUID()
-        connecting = false
+        connecting = false;interrupting=false;volumeSending=false
     }
     func disconnect() {
         pause(); client = nil; connected = false; status = nil; operation = nil
@@ -198,6 +255,23 @@ final class DevicePilotStore: ObservableObject {
                 requestPending = false; sending = false
                 uncertain = (error as? LabClientError)?.status == nil
                 message = uncertain ? "结果未确认，不会自动重发" : friendly(error)
+            }
+        }
+    }
+    func sendText(_ text: String) {
+        guard canTalk,let client else { message="暂时无法发送，请检查连接";return }
+        sending=true;requestPending=true;operation=nil;message=""
+        let stamp=generation,key=UUID()
+        submitting=Task {
+            do {
+                let result=try await client.text(text,key:key)
+                guard stamp==generation,!Task.isCancelled else { return }
+                requestPending=false;operation=result;sending=result.waiting
+                await refresh()
+            } catch {
+                guard stamp==generation else { return }
+                requestPending=false;sending=false;uncertain=(error as? LabClientError)?.status==nil
+                message=uncertain ? "发送结果未确认，不会自动重发" : friendly(error)
             }
         }
     }

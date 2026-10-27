@@ -20,7 +20,8 @@ swiftc -parse-as-library "$IOS_DIR/tools/collection-selftest.swift" \
   "$IOS_DIR/AIFigure/Content/Models.swift" -o "$TEST_DIR/collection-tests"
 "$TEST_DIR/collection-tests"
 swiftc -parse-as-library "$IOS_DIR/tools/device-client-selftest.swift" \
-  "$IOS_DIR/AIFigure/Server/DeviceLabClient.swift" -o "$TEST_DIR/device-client-tests"
+  "$IOS_DIR/AIFigure/Server/DeviceLabClient.swift" \
+  "$IOS_DIR/AIFigure/Server/ChatHistory.swift" -o "$TEST_DIR/device-client-tests"
 "$TEST_DIR/device-client-tests"
 swiftc -parse-as-library "$IOS_DIR/tools/ble-control-selftest.swift" \
   "$IOS_DIR/AIFigure/Device/BLEControlProtocol.swift" \

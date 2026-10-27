@@ -15,8 +15,8 @@ settings:
     CODE_SIGNING_ALLOWED: "NO"      # 产出未签名 IPA,由 Windows 侧 Sideloadly 用个人 Apple ID 重签(免费 7 天)
     CODE_SIGNING_REQUIRED: "NO"
     CODE_SIGN_IDENTITY: ""
-    MARKETING_VERSION: "0.2.1"
-    CURRENT_PROJECT_VERSION: "3"
+    MARKETING_VERSION: "0.3.0"
+    CURRENT_PROJECT_VERSION: "4"
 
 targets:
   AIFigure:

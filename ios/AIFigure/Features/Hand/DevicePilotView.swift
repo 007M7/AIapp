@@ -11,6 +11,7 @@ struct DevicePilotView: View {
     @State private var scanner = false
     @State private var scanError = ""
     @State private var previewDetail = false
+    @State private var previewChat = false
 
     init() {
         #if DEBUG
@@ -18,6 +19,7 @@ struct DevicePilotView: View {
         _setup = State(initialValue: arguments.contains("--preview-connect"))
         _previewDetail = State(initialValue: arguments.contains("--preview-device"))
         _showNearby = State(initialValue: arguments.contains("--preview-bluetooth"))
+        _previewChat = State(initialValue: arguments.contains("--preview-chat"))
         #endif
     }
 
@@ -31,6 +33,8 @@ struct DevicePilotView: View {
                             Text("日常搭子").font(.subheadline).foregroundStyle(.secondary)
                         }
                         Spacer()
+                        NavigationLink { DeviceChatView(device:device,nearby:nearby) } label: { Image(systemName:"bubble.left.and.bubble.right").font(.title3).padding(10) }
+                            .accessibilityLabel("聊天与记录")
                         Button { showNearby = true } label: { Image(systemName: "link").font(.title3).padding(12) }
                             .accessibilityLabel("连接设置")
                     }
@@ -46,6 +50,7 @@ struct DevicePilotView: View {
                         .frame(maxWidth: .infinity).frame(height: 380)
                         .background(Color.white, in: RoundedRectangle(cornerRadius: 30))
                         .accessibilityLabel("小鲸")
+                    DeviceVolumeControl(device:device,nearby:nearby).padding(12).background(T.card,in:RoundedRectangle(cornerRadius:14))
                     if !nearby.connected {
                         Button { showNearby = true } label: {
                             Label("连接附近的手办", systemImage: "antenna.radiowaves.left.and.right").frame(maxWidth: .infinity).padding(10)
@@ -62,15 +67,7 @@ struct DevicePilotView: View {
                         }
                     }
                     if device.connected {
-                        Text(microphone.active ? "松开发送" : microphone.preparing ? "准备麦克风…" : "按住说话")
-                            .font(.headline).foregroundStyle(.white).frame(maxWidth:.infinity).padding(18)
-                            .background(T.navy, in:RoundedRectangle(cornerRadius:14))
-                            .opacity(device.canTalk || microphone.active || microphone.preparing ? 1 : 0.4)
-                            .contentShape(Rectangle())
-                            .gesture(DragGesture(minimumDistance:0).onChanged { _ in
-                                if !holding && device.canTalk { holding = true; Task { await microphone.start() } }
-                            }.onEnded { _ in holding = false; microphone.finish() })
-                            .accessibilityLabel("按住说话，松开后由手办播放回答")
+                        DeviceHoldToTalk(device:device,microphone:microphone)
                         Button { device.identify() } label: {
                             Label(device.sending ? "等待手办回应" : "识别手办", systemImage: "waveform")
                                 .frame(maxWidth: .infinity).padding(10)
@@ -86,10 +83,12 @@ struct DevicePilotView: View {
                     if !device.message.isEmpty { Text(device.message).font(.footnote).foregroundStyle(.secondary) }
                     if !scanError.isEmpty { Text(scanError).font(.footnote).foregroundStyle(.secondary) }
                     if !microphone.message.isEmpty { Text(microphone.message).font(.footnote).foregroundStyle(.secondary) }
+                    NavigationLink("聊天与记录") { DeviceChatView(device:device,nearby:nearby) }.frame(maxWidth:.infinity)
                     if !nearby.message.isEmpty { Text(nearby.message).font(.footnote).foregroundStyle(.secondary) }
                 }.padding(22)
             }.background(T.paper).toolbar(.hidden, for: .navigationBar)
                 .navigationDestination(isPresented: $previewDetail) { detail }
+                .navigationDestination(isPresented: $previewChat) { DeviceChatView(device:device,nearby:nearby) }
                 .refreshable { await device.refresh() }
         }
         .tint(T.navy)
