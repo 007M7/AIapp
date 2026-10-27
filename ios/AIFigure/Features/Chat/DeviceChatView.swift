@@ -1,37 +1,9 @@
 import SwiftUI
 
-struct DeviceVolumeControl: View {
-    @ObservedObject var device: DevicePilotStore
-    @ObservedObject var nearby: NearbyDeviceStore
-    @State private var value=75.0
-    @State private var editing=false
-    private var actual: Int? { nearby.connected ? nearby.status?.volume : device.volume }
-    private var enabled: Bool { device.canSetVolume || (nearby.connected && !nearby.working) }
-    var body: some View {
-        VStack(spacing:4) {
-            HStack(spacing:12) {
-                Image(systemName:value == 0 ? "speaker.slash" : "speaker.wave.2").foregroundStyle(T.navy)
-                Slider(value:$value,in:0...100,step:1) { active in
-                    editing=active
-                    if !active {
-                        if device.canSetVolume { device.setVolume(Int(value)) }
-                        else if nearby.connected { nearby.command("volume",fields:["n":Int(value)]) }
-                    }
-                }.disabled(!enabled)
-                Text(actual == nil && !editing ? "—" : "\(Int(value))%")
-                    .font(.caption.monospacedDigit()).frame(width:38)
-            }
-            if !device.volumeMessage.isEmpty { Text(device.volumeMessage).font(.caption).foregroundStyle(.secondary) }
-        }
-        .onAppear { value=Double(actual ?? 75) }
-        .onChange(of:actual) { current in if !editing,let current { value=Double(current) } }
-        .accessibilityLabel("手办音量")
-    }
-}
-
 struct DeviceHoldToTalk: View {
     @ObservedObject var device: DevicePilotStore
     @ObservedObject var microphone: MobileVoiceRecorder
+    @ObservedObject var volumeBridge: SystemVolumeBridge
     @State private var held=false
     var body: some View {
         Text(microphone.active ? "松开发送" : device.interrupting ? "正在停止回答…" : microphone.preparing ? "准备麦克风…" : device.canInterrupt ? "按住打断并说话" : "按住说话")
@@ -45,10 +17,12 @@ struct DeviceHoldToTalk: View {
                 Task {
                     let allowed=await device.prepareVoice()
                     guard held,allowed else { return }
+                    volumeBridge.setRecording(true)
                     await microphone.start()
                 }
             }.onEnded { _ in held=false;microphone.finish() })
-            .onDisappear { held=false;microphone.finish(cancel:true) }
+            .onChange(of:microphone.active || microphone.preparing) { value in volumeBridge.setRecording(value) }
+            .onDisappear { held=false;microphone.finish(cancel:true);volumeBridge.setRecording(false) }
             .accessibilityLabel(device.canInterrupt ? "按住打断当前回答并说话" : "按住说话，松开发送")
     }
 }
@@ -56,11 +30,11 @@ struct DeviceHoldToTalk: View {
 struct DeviceChatView: View {
     @ObservedObject var device: DevicePilotStore
     @ObservedObject var nearby: NearbyDeviceStore
+    @ObservedObject var volumeBridge: SystemVolumeBridge
     @StateObject private var history=DeviceChatStore()
     @StateObject private var microphone=MobileVoiceRecorder()
     @State private var draft=""
     @State private var voiceInput=true
-    @State private var volumeSheet=false
     @State private var followLatest=true
     @Environment(\.scenePhase) private var phase
     var body: some View {
@@ -94,6 +68,7 @@ struct DeviceChatView: View {
             if !history.note.isEmpty { Text(history.note).font(.caption).foregroundStyle(.secondary).padding(6) }
             if !device.message.isEmpty { Text(device.message).font(.caption).foregroundStyle(.secondary).padding(6) }
             if !microphone.message.isEmpty { Text(microphone.message).font(.caption).foregroundStyle(.secondary).padding(6) }
+            if !volumeBridge.message.isEmpty { Text(volumeBridge.message).font(.caption).foregroundStyle(.secondary).padding(6) }
             inputBar
         }
         .background(Color(white:0.94))
@@ -103,20 +78,13 @@ struct DeviceChatView: View {
                 Text("小鲸").font(.headline)
                 Text(device.stateTitle).font(.caption2).foregroundStyle(.secondary)
             } }
-            ToolbarItem(placement:.navigationBarTrailing) {
-                Button { volumeSheet=true } label: { Image(systemName:"speaker.wave.2") }.accessibilityLabel("调节手办音量")
-            }
+
         }
-        .sheet(isPresented:$volumeSheet) {
-            VStack(alignment:.leading,spacing:24) {
-                Text("手办音量").font(.title2.bold())
-                DeviceVolumeControl(device:device,nearby:nearby)
-                Button("完成") { volumeSheet=false }.frame(maxWidth:.infinity)
-            }.padding(28).presentationDetents([.height(210)])
-        }
-        .task { history.start(device) }
+        .task { history.start(device);volumeBridge.configure(device:device,nearby:nearby);volumeBridge.setForeground(phase == .active) }
+        .onChange(of:device.status?.deviceOnline == true || nearby.connected) { _ in volumeBridge.configure(device:device,nearby:nearby) }
         .onDisappear { history.stop();microphone.finish(cancel:true) }
         .onChange(of:phase) { phase in
+            volumeBridge.setForeground(phase == .active)
             if phase == .active { history.start(device) }
             else if phase == .background { history.stop();microphone.finish(cancel:true) }
         }
@@ -129,7 +97,7 @@ struct DeviceChatView: View {
             Button { microphone.finish(cancel:true);voiceInput.toggle() } label: {
                 Image(systemName:voiceInput ? "keyboard" : "waveform.circle").font(.title2).frame(width:30,height:48)
             }.accessibilityLabel(voiceInput ? "切换文字输入" : "切换语音输入")
-            if voiceInput { DeviceHoldToTalk(device:device,microphone:microphone) }
+            if voiceInput { DeviceHoldToTalk(device:device,microphone:microphone,volumeBridge:volumeBridge) }
             else {
                 TextField("发送消息",text:$draft,axis:.vertical).lineLimit(1...4)
                     .padding(12).background(.white,in:RoundedRectangle(cornerRadius:10))

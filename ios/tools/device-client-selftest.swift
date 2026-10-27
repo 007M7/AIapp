@@ -49,6 +49,12 @@ final class LabURLProtocol: URLProtocol {
         }
         let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [LabURLProtocol.self]
         let client = try DeviceLabClient(address: "http://192.168.137.1:8795", token: LabURLProtocol.token, session: URLSession(configuration: config))
+        assert(SystemVolumePolicy.target(old:0.25,new:0.5,foreground:true,recording:false)==50)
+        assert(SystemVolumePolicy.target(old:0.5,new:0,foreground:true,recording:false)==0)
+        assert(SystemVolumePolicy.target(old:0.5,new:1,foreground:true,recording:false)==100)
+        assert(SystemVolumePolicy.target(old:0.5,new:0.75,foreground:false,recording:false)==nil)
+        assert(SystemVolumePolicy.target(old:0.5,new:0.75,foreground:true,recording:true)==nil)
+        assert(SystemVolumePolicy.target(old:0.5,new:0.5,foreground:true,recording:false)==nil)
         let status = try await client.status()
         assert(status.stateLabel == "可互动" && status.telemetry?.batteryPercent == nil)
         let lost = LabOperation(id:"previous",status:"unknown",code:"device_disconnected",created:1,updated:2,kind:"voice")

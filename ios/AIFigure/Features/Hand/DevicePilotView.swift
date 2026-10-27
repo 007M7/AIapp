@@ -4,6 +4,7 @@ struct DevicePilotView: View {
     @StateObject private var device = DevicePilotStore()
     @StateObject private var microphone = MobileVoiceRecorder()
     @StateObject private var nearby = NearbyDeviceStore()
+    @StateObject private var volumeBridge = SystemVolumeBridge()
     @State private var showNearby = false
     @State private var holding = false
     @Environment(\.scenePhase) private var scenePhase
@@ -33,7 +34,7 @@ struct DevicePilotView: View {
                             Text("日常搭子").font(.subheadline).foregroundStyle(.secondary)
                         }
                         Spacer()
-                        NavigationLink { DeviceChatView(device:device,nearby:nearby) } label: { Image(systemName:"bubble.left.and.bubble.right").font(.title3).padding(10) }
+                        NavigationLink { DeviceChatView(device:device,nearby:nearby,volumeBridge:volumeBridge) } label: { Image(systemName:"bubble.left.and.bubble.right").font(.title3).padding(10) }
                             .accessibilityLabel("聊天与记录")
                         Button { showNearby = true } label: { Image(systemName: "link").font(.title3).padding(12) }
                             .accessibilityLabel("连接设置")
@@ -50,7 +51,6 @@ struct DevicePilotView: View {
                         .frame(maxWidth: .infinity).frame(height: 380)
                         .background(Color.white, in: RoundedRectangle(cornerRadius: 30))
                         .accessibilityLabel("小鲸")
-                    DeviceVolumeControl(device:device,nearby:nearby).padding(12).background(T.card,in:RoundedRectangle(cornerRadius:14))
                     if !nearby.connected {
                         Button { showNearby = true } label: {
                             Label("连接附近的手办", systemImage: "antenna.radiowaves.left.and.right").frame(maxWidth: .infinity).padding(10)
@@ -67,7 +67,7 @@ struct DevicePilotView: View {
                         }
                     }
                     if device.connected {
-                        DeviceHoldToTalk(device:device,microphone:microphone)
+                        DeviceHoldToTalk(device:device,microphone:microphone,volumeBridge:volumeBridge)
                         Button { device.identify() } label: {
                             Label(device.sending ? "等待手办回应" : "识别手办", systemImage: "waveform")
                                 .frame(maxWidth: .infinity).padding(10)
@@ -83,17 +83,20 @@ struct DevicePilotView: View {
                     if !device.message.isEmpty { Text(device.message).font(.footnote).foregroundStyle(.secondary) }
                     if !scanError.isEmpty { Text(scanError).font(.footnote).foregroundStyle(.secondary) }
                     if !microphone.message.isEmpty { Text(microphone.message).font(.footnote).foregroundStyle(.secondary) }
-                    NavigationLink("聊天与记录") { DeviceChatView(device:device,nearby:nearby) }.frame(maxWidth:.infinity)
+                    NavigationLink("聊天与记录") { DeviceChatView(device:device,nearby:nearby,volumeBridge:volumeBridge) }.frame(maxWidth:.infinity)
                     if !nearby.message.isEmpty { Text(nearby.message).font(.footnote).foregroundStyle(.secondary) }
+                    if !volumeBridge.message.isEmpty { Text(volumeBridge.message).font(.footnote).foregroundStyle(.secondary) }
                 }.padding(22)
             }.background(T.paper).toolbar(.hidden, for: .navigationBar)
                 .navigationDestination(isPresented: $previewDetail) { detail }
-                .navigationDestination(isPresented: $previewChat) { DeviceChatView(device:device,nearby:nearby) }
+                .navigationDestination(isPresented: $previewChat) { DeviceChatView(device:device,nearby:nearby,volumeBridge:volumeBridge) }
                 .refreshable { await device.refresh() }
         }
         .tint(T.navy)
-        .task { device.resume(); nearby.resume() }
+        .task { device.resume(); nearby.resume();volumeBridge.configure(device:device,nearby:nearby);volumeBridge.setForeground(scenePhase == .active) }
+        .onChange(of:device.status?.deviceOnline == true || nearby.connected) { _ in volumeBridge.configure(device:device,nearby:nearby) }
         .onChange(of: scenePhase) { phase in
+            volumeBridge.setForeground(phase == .active)
             if phase == .active { device.resume(); nearby.resume() }
             else if phase == .background { holding = false; microphone.finish(cancel:true); device.pause(); nearby.close() }
         }
