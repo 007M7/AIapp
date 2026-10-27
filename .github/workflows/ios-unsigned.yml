@@ -1,86 +1,67 @@
 name: iOS 未签名 IPA
 
-# 与 jev 项目(D:\jev)同一条 2026-09-22 已跑通的链路:
-#   macOS runner 出未签名 IPA → Windows 侧 Sideloadly(便携版在 D:\jev\Sideloadly)
-#   用个人 Apple ID 重签安装,免费账号 7 天有效,到期重签。
-#
-# AIFigure 只需要 iOS 16 SDK,所以用**稳定的 macos-15 镜像**即可;
-# 不需要 jev 那边的 xcode-27 preview 镜像(那个镜像经常抢不到机器,
-# ~11 秒内 completed/failure、runner_name 为空 = 没排上队,不是构建失败——教训来自 jev)。
 on:
   workflow_dispatch:
     inputs:
       note:
-        description: 本次构建的说明(会写进 artifact 名)
+        description: 本次构建的说明
         required: false
         default: mvp1
+      configuration:
+        description: 构建配置，Debug为设备试用版
+        type: choice
+        options: [Debug, Release]
+        default: Debug
+      preview:
+        description: 同时生成模拟器截图（不影响IPA配置）
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: macos-15
     timeout-minutes: 30
-
     steps:
       - uses: actions/checkout@v4
-
       - name: 工具链自检
-        run: |
-          xcodebuild -version
-          xcodebuild -showsdks | grep -i iphoneos
-
+        run: xcodebuild -version
       - name: 安装 XcodeGen
         run: brew install xcodegen
-
-      - name: 生成工程并编译(未签名)
-        working-directory: ios
-        run: |
-          set -o pipefail
-          xcodegen generate
-          echo "=== 生成结果 ==="
-          ls -la
-          xcodebuild \
-            -project AIFigure.xcodeproj \
-            -target AIFigure \
-            -configuration Release \
-            -sdk iphoneos \
-            CONFIGURATION_BUILD_DIR="$PWD/build" \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            build | tee build.log
-          echo "=== 产物 ==="
-          ls -la build/ || true
-
-      - name: 校验产物关键项(蓝牙权限文案必须在,缺了装上也是白装)
-        working-directory: ios
-        run: |
-          APP=build/AIFigure.app
-          if [ ! -d "$APP" ]; then echo "::error::没找到 .app 产物"; exit 1; fi
-          /usr/libexec/PlistBuddy -c "Print :CFBundleDisplayName" "$APP/Info.plist"
-          /usr/libexec/PlistBuddy -c "Print :NSBluetoothAlwaysUsageDescription" "$APP/Info.plist"
-
-      - name: 打包成未签名 IPA
-        working-directory: ios
-        run: |
-          APP=build/AIFigure.app
-          rm -rf Payload AIFigure-unsigned.ipa
-          mkdir -p Payload
-          cp -R "$APP" Payload/
-          zip -qry AIFigure-unsigned.ipa Payload
-          ls -lh AIFigure-unsigned.ipa
-          echo "=== IPA 内容 ==="
-          unzip -l AIFigure-unsigned.ipa | head -16
-
-      - uses: actions/upload-artifact@v4
+      - name: 生成工程、自测与未签名编译
+        env:
+          BUILD_CONFIGURATION: ${{ inputs.configuration || 'Release' }}
+        run: CODE_SIGNING_ALLOWED=NO bash ios/tools/build-ipa.sh
+      - name: 构建模拟器与原生界面截图
+        if: inputs.configuration == 'Debug' && inputs.preview != false
+        timeout-minutes: 8
+        run: bash ios/tools/preview-simulator.sh
+      - name: 保存原生界面预览
+        if: inputs.configuration == 'Debug' && inputs.preview != false
+        uses: actions/upload-artifact@v4
+        with:
+          name: AIFigure-native-preview
+          path: ios/preview/
+          if-no-files-found: error
+      - name: 保存未签名IPA
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: AIFigure-unsigned-${{ github.event.inputs.note || 'mvp1' }}
-          path: ios/AIFigure-unsigned.ipa
+          path: |
+            ios/dist/AIFigure-unsigned.ipa
+            ios/dist/build-metadata.txt
           if-no-files-found: error
           retention-days: 30
-
-      - name: 编译日志(失败时)
-        if: failure()
-        working-directory: ios
-        run: |
-          echo "=== 最近的错误 ==="
-          grep -nE "error:" build.log | tail -60 || tail -80 build.log
+      - name: 保存编译日志
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AIFigure-build-log-${{ github.run_id }}
+          path: |
+            ios/build.log
+            ios/preview-build.log
+          if-no-files-found: ignore
+          retention-days: 14

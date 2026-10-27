@@ -4,72 +4,70 @@ import SwiftUI
 /// UGC M1 才开闸;本期仅官方内容(`14` §4.6),机审面为零。
 struct CommunityView: View {
     @EnvironmentObject private var env: AppEnv
-    @State private var packs: [PackItem] = []
-    @State private var posts: [CommunityPost] = []
-    @State private var configured = true
+    @ObservedObject private var config = ServerConfig.shared
+    @StateObject private var packList = RemoteCollection<PackItem>()
+    @StateObject private var postList = RemoteCollection<CommunityPost>()
+    private var packs: [PackItem] { packList.items }
+    private var posts: [CommunityPost] { postList.items }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 14) {
-                    AIBadgeBar()
-                    PageHeader(title: "社区", subtitle: "这里是角色包与故事的聚集地")
-                    weeklyCard
-                    if packs.isEmpty {
-                        EmptyStateCard(title: Copy.emptyCommunityTitle, note: emptyNote)
-                    } else {
-                        sectionHeader("精选角色包")
-                        ForEach(packs) { p in
-                            NavigationLink { PackDetailView(pack: p) } label: { packCard(p) }
-                                .buttonStyle(.plain)
-                        }
+                    CapLabel("最新动态").frame(maxWidth: .infinity, alignment: .leading)
+                    CollectionStatusCard(phase: postList.phase, emptyTitle: "暂无动态", emptyNote: "") {
+                        Task { await loadPosts() }
                     }
-                    if !posts.isEmpty {
-                        sectionHeader("官方动态")
-                        ForEach(posts) { post in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(post.title ?? "").font(AppFont.headline(15)).foregroundStyle(T.ink)
-                                Text(post.summary ?? "").font(AppFont.body(13)).foregroundStyle(.secondary)
+                    ForEach(posts) { post in
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Image(systemName: "person.crop.circle").foregroundStyle(T.mid)
+                                Text(post.authorName ?? "官方").font(AppFont.caption()).foregroundStyle(.secondary)
+                                Spacer()
                             }
-                            .card()
-                        }
+                            Text(post.title ?? "").font(AppFont.headline(17)).foregroundStyle(T.ink)
+                            if let summary = post.summary, !summary.isEmpty {
+                                Text(summary).font(AppFont.body(14)).foregroundStyle(T.ink)
+                            }
+                            if let pack = packs.first(where: { $0.id == post.packId }) {
+                                NavigationLink { PackDetailView(pack: pack) } label: {
+                                    Label(pack.title ?? "查看内容", systemImage: "book")
+                                        .font(AppFont.caption()).foregroundStyle(T.mid)
+                                }
+                            }
+                        }.frame(maxWidth: .infinity, alignment: .leading).card()
+                    }
+                    sectionHeader("角色")
+                    CollectionStatusCard(phase: packList.phase, emptyTitle: "暂无角色", emptyNote: "") {
+                        Task { await loadPacks() }
+                    }
+                    ForEach(packs) { p in
+                        NavigationLink { PackDetailView(pack: p) } label: { packCard(p) }.buttonStyle(.plain)
                     }
                 }
                 .padding(16)
             }
             .background(T.paper)
             .navigationTitle("社区")
-            .task { await load() }
+            .task(id: config.revision) { await load() }
             .refreshable { await load() }
         }
     }
 
-    private var emptyNote: String {
-        configured ? Copy.emptyCommunityNote : "先在「我的 → 设置」里配好服务器"
-    }
-
     private func load() async {
-        configured = ServerConfig.shared.isConfigured
-        packs = ((try? await env.api.packs()) ?? []).filter { $0.free == true || $0.official == true }
-        posts = (try? await env.api.posts()) ?? []
+        async let packs: Void = loadPacks()
+        async let posts: Void = loadPosts()
+        _ = await (packs, posts)
     }
 
-    /// 周更大卡
-    private var weeklyCard: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            ZStack(alignment: .bottomLeading) {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(LinearGradient(colors: [T.navy, T.mid], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .frame(height: 120)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("官方周更").font(AppFont.caption()).foregroundStyle(T.ice)
-                    Text("每周三更新;装载后它会在对话里接着讲")
-                        .font(AppFont.headline(15)).foregroundStyle(.white)
-                }
-                .padding(12)
-            }
+    private func loadPacks() async {
+        await packList.load(config: config) {
+            try await env.api.packs().filter { $0.official == true }
         }
-        .card(.clear)
+    }
+
+    private func loadPosts() async {
+        await postList.load(config: config) { try await env.api.posts().filter { $0.official == true } }
     }
 
     private func sectionHeader(_ title: String) -> some View {
@@ -86,7 +84,7 @@ struct CommunityView: View {
                     .font(AppFont.caption()).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer()
-            TagPill(p.priceText)
+            Image(systemName: "chevron.right").foregroundStyle(.secondary)
         }
         .card()
     }

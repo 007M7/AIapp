@@ -17,6 +17,9 @@ struct CharacterDetailView: View {
                 if let tags = c.bibleTags, !tags.isEmpty { bibleCard(tags) }
                 voiceCard
                 factsCard
+                NavigationLink { TurnListView(characterId: c.id).padding(16).navigationTitle("相处记录") } label: {
+                    MenuRow(icon: "clock", title: "相处记录")
+                }
                 PrimaryButton(title: "和它说几句", icon: "bubble.left.and.text.bubble.right") {
                     showChat = true
                 }
@@ -53,13 +56,11 @@ struct CharacterDetailView: View {
         .card()
     }
 
-    /// 角色圣经:叙事化标签;公开可查,改动提前公示(`14` D2 系)
+    /// 角色设定:叙事化标签;公开可查,改动提前公示(`14` D2 系)
     private func bibleCard(_ tags: [String]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            CapLabel("角色圣经")
+            CapLabel("角色设定")
             FlowTags(tags: tags)
-            Text("圣经是公开可查的;任何改动都会提前公示,旧版本可以回滚。")
-                .font(AppFont.caption()).foregroundStyle(.secondary)
         }
         .card()
     }
@@ -70,7 +71,7 @@ struct CharacterDetailView: View {
             HStack {
                 Text(c.voiceName ?? "基础音色").font(AppFont.body()).foregroundStyle(T.ink)
                 Spacer()
-                TagPill("已录制的基础音色永不更换")
+
             }
         }
         .card()
@@ -78,7 +79,7 @@ struct CharacterDetailView: View {
 
     private var factsCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            CapLabel("它记得的相处事实")
+            CapLabel("记忆")
             if let facts = c.facts, !facts.isEmpty {
                 ForEach(facts, id: \.self) { f in
                     Text("· \(f)").font(AppFont.body(14)).foregroundStyle(T.ink)

@@ -5,7 +5,9 @@ import SwiftUI
 struct MemoryPanelView: View {
     @EnvironmentObject private var env: AppEnv
     let character: FigureCharacter
-    @State private var memories: [MemoryItem] = []
+    @ObservedObject private var config = ServerConfig.shared
+    @StateObject private var remote = RemoteCollection<MemoryItem>()
+    private var memories: [MemoryItem] { remote.items }
     @State private var showSealed = false
     @State private var confirmClear = false
     @State private var message = ""
@@ -18,13 +20,15 @@ struct MemoryPanelView: View {
         ScrollView {
             VStack(spacing: 14) {
                 PageHeader(title: "它记得的事",
-                           subtitle: "\(visible.count) 条 · \(Copy.memoryIntro)")
+                           subtitle: "\(visible.count) 条")
                 Picker("视图", selection: $showSealed) {
                     Text("在记的").tag(false)
                     Text("已封存").tag(true)
                 }
                 .pickerStyle(.segmented)
-                if visible.isEmpty {
+                CollectionStatusCard(phase: remote.phase, emptyTitle: Copy.emptyMemoriesTitle,
+                                     emptyNote: Copy.emptyMemoriesNote) { Task { await load() } }
+                if remote.phase == .loaded && visible.isEmpty {
                     EmptyStateCard(title: showSealed ? "没有封存的记忆" : Copy.emptyMemoriesTitle,
                                    note: showSealed ? Copy.sealNote : Copy.emptyMemoriesNote)
                 }
@@ -39,7 +43,7 @@ struct MemoryPanelView: View {
         }
         .background(T.paper)
         .navigationTitle("记忆")
-        .task { await load() }
+        .task(id: config.revision) { await load() }
         .refreshable { await load() }
         .alert("清空它的全部记忆?", isPresented: $confirmClear) {
             Button("清空", role: .destructive) { Task { await clear() } }
@@ -50,13 +54,13 @@ struct MemoryPanelView: View {
     }
 
     private func load() async {
-        memories = (try? await env.api.memories(characterId: character.id)) ?? []
+        await remote.load(config: config) { try await env.api.memories(characterId: character.id) }
     }
 
     private func clear() async {
         do {
             _ = try await env.api.clearMemories(characterId: character.id)
-            memories = []
+            await load()
             message = "已清空。"
         } catch { message = "没成功:\(error.localizedDescription)" }
     }
@@ -67,8 +71,8 @@ struct MemoryPanelView: View {
             Text([m.category, m.createdAt].compactMap { $0 }.joined(separator: " · "))
                 .font(AppFont.caption()).foregroundStyle(.secondary)
             HStack(spacing: 12) {
-                NavigationLink { MemoryEditView(memory: m) { edited in
-                    if let i = memories.firstIndex(where: { $0.id == edited.id }) { memories[i] = edited }
+                NavigationLink { MemoryEditView(memory: m) { _ in
+                    Task { await load() }
                 } } label: { Text("编辑").font(AppFont.caption()).foregroundStyle(T.mid) }
                 Button("封存") { Task { await setStatus(m, archived: true) } }
                     .font(AppFont.caption()).foregroundStyle(T.gold)
@@ -83,15 +87,15 @@ struct MemoryPanelView: View {
     private func delete(_ m: MemoryItem) async {
         do {
             _ = try await env.api.deleteMemory(m.id)
-            memories.removeAll { $0.id == m.id }
+            await load()
         } catch { message = "删除没成功:\(error.localizedDescription)" }
     }
 
     private func setStatus(_ m: MemoryItem, archived: Bool) async {
         do {
-            let updated = try await env.api.updateMemory(m.id, factText: m.factText ?? "",
+            _ = try await env.api.updateMemory(m.id, factText: m.factText ?? "",
                                                          status: archived ? "archived" : "active")
-            if let i = memories.firstIndex(where: { $0.id == updated.id }) { memories[i] = updated }
+            await load()
         } catch {
             message = "封存没成功:\(error.localizedDescription)"
         }

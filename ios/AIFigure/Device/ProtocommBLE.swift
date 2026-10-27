@@ -9,6 +9,9 @@ import CoreBluetooth
 ///   - 同一时刻只能有一个请求在路上(ProvisionSession 已串行化,这里再兜一层)
 final class ProtocommBLE: NSObject {
     static let serviceUUID = CBUUID(string: "10624C9A-F2AA-4CA8-8594-9CD3CC78DB3F")
+    static let controlServiceUUID = CBUUID(string: "10624C9B-F2AA-4CA8-8594-9CD3CC78DB3F")
+    private let management: Bool
+    private var selectedService: CBUUID { management ? Self.controlServiceUUID : Self.serviceUUID }
     static let namePrefix = "AIFIG_"
     static let xferTimeout: TimeInterval = 8
     static let connectTimeout: TimeInterval = 10
@@ -21,7 +24,7 @@ final class ProtocommBLE: NSObject {
 
     // 端点名 -> 16 bit id;特征值 UUID = 服务 UUID 第一段的第 5~8 个十六进制字符换成它
     enum Endpoint: String, CaseIterable {
-        case provCtrl = "FF4F", provScan = "FF50", provSession = "FF51", provConfig = "FF52", protoVer = "FF53"
+        case provCtrl = "FF4F", provScan = "FF50", provSession = "FF51", provConfig = "FF52", protoVer = "FF53", control = "FF54"
         var cbuuid: CBUUID { CBUUID(string: "1062" + rawValue + String(ProtocommBLE.serviceUUID.uuidString.dropFirst(8))) }
     }
 
@@ -29,9 +32,11 @@ final class ProtocommBLE: NSObject {
     static let endpointByName: [String: Endpoint] = [
         "prov-ctrl": .provCtrl, "prov-scan": .provScan, "prov-session": .provSession,
         "prov-config": .provConfig, "proto-ver": .protoVer,
+        "device-control": .control,
     ]
 
-    override init() {
+    init(management: Bool = false) {
+        self.management = management
         super.init()
         central = CBCentralManager(delegate: self, queue: nil)   // 主队列:与续体/定时器同一串行上下文
     }
@@ -96,10 +101,10 @@ final class ProtocommBLE: NSObject {
         p.delegate = self
         try await withTimeout(Self.connectTimeout, "连接超时,请靠近手办再试") { self.central.connect(p) }
         // 读写前必须先拿过服务和特征值
-        p.discoverServices([Self.serviceUUID])
+        p.discoverServices([selectedService])
         try await withTimeout(Self.connectTimeout, "这个设备上找不到配网服务:是不是没进配网模式,或固件太旧?") {}
         guard chars[.protoVer] != nil, chars[.provSession] != nil,
-              chars[.provConfig] != nil, chars[.provCtrl] != nil else {
+              (management ? chars[.control] != nil : (chars[.provConfig] != nil && chars[.provCtrl] != nil)) else {
             throw ProvError.ble("这个设备上找不到配网服务:是不是没进配网模式,或固件太旧?")
         }
     }
@@ -108,6 +113,9 @@ final class ProtocommBLE: NSObject {
     func xfer(_ ep: Endpoint, _ bytes: Data) async throws -> Data {
         guard let p = peripheral, let ch = chars[ep] else { throw ProvError.ble("蓝牙连接已断开") }
         if bytes.isEmpty { throw ProvError.ble("不能发空消息") }     // 设备会忽略空写,读回旧数据
+        guard bytes.count <= p.maximumWriteValueLength(for: .withResponse) else {
+            throw ProvError.ble("蓝牙单次写入长度不足，请重新连接手办")
+        }
         guard writeCont == nil, readCont == nil else { throw ProvError.ble("上一个请求还没结束") }
         let result: Data = try await withTimeout(Self.xferTimeout, "手办没有响应,请靠近后重新连接") {
             try await withCheckedThrowingContinuation { (w: CheckedContinuation<Void, Error>) in
@@ -167,7 +175,7 @@ extension ProtocommBLE: CBCentralManagerDelegate {
         guard let cb = onFound else { return }
         let name = peripheral.name ?? (advertisementData[CBAdvertisementDataLocalNameKey] as? String)
         let advertised = advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID]
-        let hit = (advertised ?? []).contains { $0 == Self.serviceUUID } || (name ?? "").hasPrefix(Self.namePrefix)
+        let hit = (advertised ?? []).contains { $0 == selectedService } || (name ?? "").hasPrefix(Self.namePrefix)
         guard hit else { return }
         cb(Found(id: peripheral.identifier, name: name ?? peripheral.identifier.uuidString, rssi: RSSI.intValue))
     }
@@ -190,7 +198,7 @@ extension ProtocommBLE: CBCentralManagerDelegate {
 extension ProtocommBLE: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let e = error { failPending(e.localizedDescription); return }
-        guard let svc = peripheral.services?.first(where: { $0.uuid == Self.serviceUUID }) else {
+        guard let svc = peripheral.services?.first(where: { $0.uuid == selectedService }) else {
             failPending("这个设备上找不到配网服务:是不是没进配网模式,或固件太旧?"); return
         }
         let wanted = Endpoint.allCases.map(\.cbuuid)

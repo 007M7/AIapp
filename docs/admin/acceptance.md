@@ -2,6 +2,8 @@
 
 2026-10-12 · 本机 Windows，Python3.12.14、Node24.16.0、Edge headless。范围为独立管理服务，云部署和真实 App／设备接入未验收。
 
+补充：GitHub [Linux CI 38215926903](https://github.com/007M7/AIapp/actions/runs/38215926903) 对ecf9d43成功执行19个测试及前端构建。这仍不包含生产数据库／缓存／队列或CD，完整差距见 [生产架构审查](production-architecture-review.md)。
+
 ## 需求追踪
 
 | 需求 | 已验证判据 | 证据 |

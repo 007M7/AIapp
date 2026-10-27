@@ -6,10 +6,15 @@ struct AIFigureApp: App {
 
     var body: some Scene {
         WindowGroup {
+            #if DEVICE_PILOT
+            DevicePilotView()
+                .environmentObject(env)
+            #else
             RootTabView()
                 .environmentObject(env)
                 .tint(T.navy)
                 .background(T.paper)
+            #endif
         }
     }
 }

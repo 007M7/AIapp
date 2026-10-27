@@ -1,5 +1,9 @@
 # 14 · 小程序与服务端设计总纲:一个核心多个外观 × 可迁移记忆 × 社区 × 服务器架构
 
+> **2026-10-12 交付顺序更新（09 D-18～21）**：一期优先微信小程序；安卓／iOS保留后续规划。小程序先接wx.login；App微信＋手机号双登录的选择保留至App阶段。后台邀请＋密码＋TOTP；本地选定素材／内容只迁为待审核草稿。具体实现与真机验收尚未完成。
+
+> **2026-10-12 生产核心裁定**：09 §0 的D-15～17已获用户确认。Java业务核心统一服务后台、iOS、安卓、小程序，一期包含角色生活与事件状态；Python负责AI／语音及设备执行。旧aiohttp业务API／SQLite架构描述由新生产方向更新，已有产品对象与接口作为迁移输入。技术边界见AIapp/docs/admin/ADR-002-java-business-core.md；具体版本、资源和迁移契约按Q-90核实。此决定不代表Java工程、生产部署、设备事件播放或具体玩法已完成，也不改变现有固件协议。
+
 > **2026-10-03 端侧整理补充**：手机端分为微信小程序与安卓／苹果 App。入口见 [21 共用基线](21-mobile-product-baseline.md)、[22 小程序 PRD](22-wechat-miniprogram-prd.md)、[23 App PRD](23-android-ios-app-prd.md)。原生 App“不启动”的旧描述已被 D-13／D-14 更新；推送／OTA／小组件等未来列不属于 iPhone MVP1。设备新增控制仍受 18 冻结；安卓与 iPhone 同期 MVP，安卓技术路径待 Q-89。
 
 > 2026-09-29。本文由六份分册草稿(身份与可迁移记忆 / 角色·外观包 / 可玩性 / 社区 / 服务器架构 / 竞品通性)总装而成,是小程序与服务端开发的**需求骨架**:每一章的决策、表结构、API 端点、玩法条目都可直接拆成开发单。
@@ -541,6 +545,8 @@ post_reactions(post_id, user_id, kind, PRIMARY KEY(post_id, user_id, kind))
 **刻意缺席的端点**:支付/订单(Q-20+主体)、自带 key 配置(已否决)、任何对第三方开放的 API(已否决)。订阅付费整体悬置到 M2,不做占位接口。
 
 ### 5.5 部署形态与容量(D5-5/6/7)
+
+> **2026-10-12容量纠正**：用户确认现有腾讯云2核／2GB／40GB、已有域名。下文“210MB、2G充裕”、aiohttp／SQLite与三进程共享包是历史方案假设，不适用于现Java API／独立Worker＋Python＋PostgreSQL／Redis的总容量。以AIapp/docs/admin/production-deployment-and-operations.md的讨论方案评估自建／托管数据库、资源、443分流、备份及运维；升配、托管及恢复目标未冻结。尚无本轮联合容量或公网部署证据。
 
 **进程布局**:nginx(stream,`ssl_preread`,SNI 分流,443 复用——设备 PSK 域名不变、避免重烧,无 OTA 改地址=拆机)→ stunnel(TLS1.2 纯 PSK,挪进环回,配置死规定)→ voice-gateway;API 走 nginx http TLS 终结 → api(aiohttp,不引 FastAPI)。网关与 API 分两个 systemd 进程(故障隔离:API 崩了设备照聊)。安全组只开 22+443、禁 root 密码登录。内存预算约 210MB,2G 充裕。
 

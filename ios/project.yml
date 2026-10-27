@@ -15,8 +15,8 @@ settings:
     CODE_SIGNING_ALLOWED: "NO"      # 产出未签名 IPA,由 Windows 侧 Sideloadly 用个人 Apple ID 重签(免费 7 天)
     CODE_SIGNING_REQUIRED: "NO"
     CODE_SIGN_IDENTITY: ""
-    MARKETING_VERSION: "0.1.0"
-    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "0.3.0"
+    CURRENT_PROJECT_VERSION: "4"
 
 targets:
   AIFigure:
@@ -24,9 +24,14 @@ targets:
     platform: iOS
     sources:
       - path: AIFigure               # 整个源码目录自动入工程;Info.plist 会被自动排除,Assets.xcassets 自动进资源
+        excludes: [Info-Debug.plist]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.aiapp.figure   # 占位;Sideloadly 免费签会自动加后缀
         INFOPLIST_FILE: AIFigure/Info.plist
         TARGETED_DEVICE_FAMILY: "1"  # 只做 iPhone(PRD §3.1 App 列)
         ENABLE_PREVIEWS: "YES"
+      configs:
+        Debug:
+          INFOPLIST_FILE: AIFigure/Info-Debug.plist
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) DEBUG DEVICE_PILOT"

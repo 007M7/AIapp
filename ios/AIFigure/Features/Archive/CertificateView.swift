@@ -4,8 +4,6 @@ import SwiftUI
 /// 契约四条与原型逐字一致;可存图/分享走系统分享面板(ShareLink)。
 struct CertificateView: View {
     let character: FigureCharacter
-    @State private var nameInput = ""
-    @State private var signed = UserDefaults.standard.bool(forKey: "contract.signed.v1")
 
     var body: some View {
         ScrollView {
@@ -20,7 +18,6 @@ struct CertificateView: View {
         }
         .background(T.paper)
         .navigationTitle("出生证与契约")
-        .onAppear { nameInput = character.displayName }
     }
 
     // 出生证:名字栏手写、编号、日期、脚注
@@ -31,19 +28,17 @@ struct CertificateView: View {
                 .foregroundStyle(T.gold)
                 .tracking(4)
             Image(systemName: "water.waves").font(.system(size: 26)).foregroundStyle(T.mid)
-            TextField("名字由你写下", text: $nameInput)
+            Text(character.displayName)
                 .font(.system(size: 26, weight: .semibold, design: .serif))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(T.ink)
-            Text("名字由你写下,随时可以改;每次更改都会留下记录")
-                .font(AppFont.caption()).foregroundStyle(.secondary)
             Divider()
             HStack {
                 LabeledRow(title: "编号 \(character.number ?? "待颁发")")
                 LabeledRow(title: character.packVersion.map { "角色包 v\($0)" } ?? "角色包")
             }
             ShareLink(item: shareText) {
-                Label("存图 / 分享", systemImage: "square.and.arrow.up")
+                Label("分享文字", systemImage: "square.and.arrow.up")
                     .font(AppFont.caption()).foregroundStyle(T.mid)
             }
         }
@@ -55,7 +50,7 @@ struct CertificateView: View {
 
     private var shareText: String {
         """
-        「\(nameInput)」的出生证
+        「\(character.displayName)」的出生证
         编号 \(character.number ?? "待颁发") · \(character.adoptedAt ?? "")
         —— AI 手办
         """
@@ -68,20 +63,17 @@ struct CertificateView: View {
             ForEach(Copy.contractItems, id: \.self) { line in
                 Text(line).font(AppFont.body(14)).foregroundStyle(T.ink)
             }
-            PrimaryButton(title: signed ? "已签署 · 查看记录" : "签署") { signed = true }
-            Text(Copy.contractSignNote).font(AppFont.caption()).foregroundStyle(.secondary)
+            Text("签署暂未开放").font(AppFont.body(13)).foregroundStyle(.secondary)
+
         }
         .card()
-        .onChange(of: signed) { value in
-            if value { UserDefaults.standard.set(true, forKey: "contract.signed.v1") }
-        }
     }
 
     private var recordsCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             CapLabel("签署记录")
-            LabeledRow(title: signed ? "首次签署 · 契约 v1" : "还没有签署", note: character.adoptedAt ?? "")
-            Text(Copy.contractSignNote).font(AppFont.caption()).foregroundStyle(.secondary)
+            LabeledRow(title: "暂无签署记录", note: "")
+
         }
         .card()
     }

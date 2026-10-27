@@ -21,7 +21,7 @@ enum Copy {
 
     // 承诺页(me/promise)—— 与原型逐字一致,一字未改
     static let promisePageTitle = "我们承诺什么,不承诺什么"
-    static let promisePageIntro = "这一页的内容,和包装里的卡片逐字一致。"
+    static let promisePageIntro = ""
     static let promiseSectionTitle = "可承诺的三件事"
     static let promises: [Item] = [
         Item(title: "按住才听", body: "不按住,麦克风不工作。"),
@@ -47,12 +47,12 @@ enum Copy {
 
     // 商店 · 永久免费区(store/free;首屏横幅共用标题)
     static let freeZoneTitle = "永久免费区"
-    static let freeZoneBanner = "对话、记忆、按键互动、离线底稿 —— 不花钱也不缺"
-    static let freeZoneIntro = "这些不会因为你没有付费而少一点"
+    static let freeZoneBanner = "查看免费内容"
+    static let freeZoneIntro = ""
     static let freeZoneItems = [
-        "对话(按对话时长计量,按时间回血)",
-        "它记得你(长期记忆)",
-        "按键互动(两个动作)",
+        "对话",
+        "记忆",
+        "按键互动",
         "离线底稿(断网也在)",
     ]
     static let paidIsMoreTitle = "付费只买「更多」"
@@ -61,7 +61,7 @@ enum Copy {
 
     // 设备两动作(device/manual)—— 三处一致:包装卡 / 开箱第一句 / 本页
     static let manualTitle = "它的两个动作"
-    static let manualIntro = "包装卡、开箱第一句、本页,说的是同一件事"
+    static let manualIntro = ""
     static let deviceActions: [Item] = [
         Item(title: "按住说话", body: "按住头顶那颗按键,松开,它就开口。"),
         Item(title: "播放中按键打断", body: "它在说的时候,按一下,它就停。"),
@@ -70,16 +70,16 @@ enum Copy {
 
     // 绑定(device/bind)
     static let bindTitle = "绑定手办"
-    static let bindIntro = "两种都可以;不强制,先领一只「虚拟手办」看看也行"
+    static let bindIntro = ""
     static let bindOptions: [Item] = [
         Item(title: "扫码绑定", body: "底座二维码一扫即连"),
         Item(title: "手动输入 SN", body: "底座或说明书上的序列号"),
     ]
-    static let bindFooter = "不想现在绑定也可以跳过;开箱仪式里的每一步都能断点续做。"
+    static let bindFooter = ""
 
     // BLE 配网(device/provision)
     static let provisionIntro = "把手机上的 WiFi 发给手办,大约 30 秒"
-    static let provisionPrivacy = "密码只进手办,不进云端;写入只走蓝牙加密通道(Security 1)。"
+    static let provisionPrivacy = "密码通过蓝牙加密传输。"
 
     // 开箱仪式(onboarding)—— `19` §6.1 六步,每步可跳过、断点续做
     static let onboardingIntroTitle = "装备须知"
@@ -95,28 +95,28 @@ enum Copy {
     static let onboardingCardTitle = "第一张角色卡"
     static let onboardingCardIntro = "它免费进你的收藏柜,永远属于你"
     static let onboardingSignTitle = "把它说过的话,按一下手印"
-    static let onboardingSignIntro = "这四件事,它永远不做"
+    static let onboardingSignIntro = ""
     static let onboardingDoneHeadline = "好了,它认识你了"
     static let onboardingFirstWords = "「从今天起,我记着你。」"
 
     // 档案与记忆
-    static let memoryIntro = "可查 · 可改 · 可删 · 记忆永久免费"
-    static let memoryDeleteNote = "你删掉的会立刻消失;系统淡忘的会进「已淡忘」档案,你可以把它捡回来。"
-    static let memoryEditNote = "删除会立刻消失,不可找回;置顶会永远不被淡忘。"
+    static let memoryIntro = ""
+    static let memoryDeleteNote = ""
+    static let memoryEditNote = "删除后无法恢复。"
     static let sealIntro = "说一次,它就永不再提"
     static let sealNote = "封存的内容不会被它提起,也不会用来回应你;你随时可以解封。"
 
     // 资产账(archive/assets)—— 只增不减
-    static let assetsIntro = "只增不减 · 每一件都有来处"
-    static let assetsNote = "每件东西什么时候来的,都记在这里;任何一件都不会自己消失,也不会被我们收回。"
+    static let assetsIntro = ""
+    static let assetsNote = ""
 
     // 分享脱敏(PRD §8:分享卡默认脱敏,发言变「你」)
-    static let shareIntro = "把它喜欢的样子,分享给更多人"
-    static let shareNote = "分享出去的是图片;好友打开的是网页 \"/s/:token\",里面只有公开信息,没有你说过的话。"
+    static let shareIntro = ""
+    static let shareNote = "不含私人记忆"
 
     // 退出与删除(me/exit;合规:一键退出,文案禁「别离开」类)
     static let exitTitle = "退出与删除"
-    static let exitIntro = "你想走的每一步,都应该是安静的"
+    static let exitIntro = ""
     static let exitNote = "我们不会用「再想想」拦住你,也不会在你删完之后把数据留在你拿不到的地方。"
 
     // 通知与隐私(me/settings)
@@ -135,16 +135,16 @@ enum Copy {
     static let emptyMemoriesTitle = "还没有记忆"
     static let emptyMemoriesNote = "第一次对话之后,这里就会有它记得的事"
     static let emptyStoreTitle = "货架还没上架"
-    static let emptyStoreNote = "服务端商店接口(14 §5.4 #11)就绪后,这里会出现角色、外观、语音、事件、实物五架"
+    static let emptyStoreNote = "暂无商品"
     static let emptyCommunityTitle = "官方周更准备中"
-    static let emptyCommunityNote = "社区 M1 开闸;本期仅官方内容,不需要你做任何事"
+    static let emptyCommunityNote = "暂无内容"
 
     // 设备设置(device/settings)
-    static let deviceSettingsNote = "本页没有音量、灯效等硬件控制项 —— 设备侧在 MVP1 冻结(`18` v1.2)。"
+    static let deviceSettingsNote = ""
     static let nightQuietLabel = "夜间静默(22:00–08:00)"
-    static let nightQuietNote = "服务端策略,在服务器侧生效"
+    static let nightQuietNote = ""
 
     // 聊天页(ChatView)
     static let chatSendHint = "说点什么…"
-    static let chatDeviceHint = "按一下设备按键,可以让它在手办上接这句(需固件 G1)"
+    static let chatDeviceHint = "回复在手机播放"
 }

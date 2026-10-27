@@ -34,7 +34,6 @@ struct BindView: View {
                 NavigationLink { ProvisionView() } label: {
                     MenuRow(icon: "wifi", title: "BLE 配网", note: "把 WiFi 写给它")
                 }
-                Text(Copy.bindFooter).font(AppFont.caption()).foregroundStyle(.secondary)
             }
             .padding(16)
         }

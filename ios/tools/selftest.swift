@@ -15,10 +15,13 @@
 // 退出码 0 = 全过;任何断言失败立即中止并打印 got/want。
 
 import Foundation
+#if canImport(CryptoKit)
+import CryptoKit
+#endif
 
 var passed = 0
 func ok(_ name: String) { passed += 1; print("  ✔ \(name)") }
-func fail(_ name: String, _ detail: String) {
+func fail(_ name: String, _ detail: String) -> Never {
     print("  ✘ \(name): \(detail)")
     exit(1)
 }
