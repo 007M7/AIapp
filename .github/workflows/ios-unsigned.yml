@@ -12,6 +12,10 @@ on:
         type: choice
         options: [Debug, Release]
         default: Debug
+      preview:
+        description: 同时生成模拟器截图（不影响IPA配置）
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -31,16 +35,19 @@ jobs:
           BUILD_CONFIGURATION: ${{ inputs.configuration || 'Release' }}
         run: CODE_SIGNING_ALLOWED=NO bash ios/tools/build-ipa.sh
       - name: 构建模拟器与原生界面截图
-        if: inputs.configuration == 'Debug'
+        if: inputs.configuration == 'Debug' && inputs.preview != false
+        timeout-minutes: 8
         run: bash ios/tools/preview-simulator.sh
       - name: 保存原生界面预览
-        if: inputs.configuration == 'Debug'
+        if: inputs.configuration == 'Debug' && inputs.preview != false
         uses: actions/upload-artifact@v4
         with:
           name: AIFigure-native-preview
           path: ios/preview/
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - name: 保存未签名IPA
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: AIFigure-unsigned-${{ github.event.inputs.note || 'mvp1' }}
           path: |
@@ -53,6 +60,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: AIFigure-build-log-${{ github.run_id }}
-          path: ios/build.log
+          path: |
+            ios/build.log
+            ios/preview-build.log
           if-no-files-found: ignore
           retention-days: 14
