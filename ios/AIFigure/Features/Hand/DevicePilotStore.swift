@@ -116,7 +116,10 @@ final class DevicePilotStore: ObservableObject {
             await refresh()
             return canTalk
         } catch {
-            if stamp==generation { message="打断结果未确认，请核对手办后重试";uncertain=true }
+            if stamp==generation {
+                let rejected=(error as? LabClientError)?.status.map { (400..<500).contains($0) } ?? false
+                message=rejected ? friendly(error) : "打断结果未确认，请核对手办后重试";uncertain = !rejected
+            }
             return false
         }
     }

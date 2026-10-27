@@ -32,6 +32,7 @@ import Combine
             guard stamp==generation,!Task.isCancelled else { return }
             let actual=device.address+"|"+page.deviceId
             if actual != scope { scope=actual;cache=ChatHistoryCache() }
+            if !older,page.turns.isEmpty,page.revision==cache.revision,page.reset != true { note="";return }
             cache.merge(page,older:older)
             try cache.save(scope:scope);UserDefaults.standard.set(scope,forKey:"chat.last-scope")
             note=""
