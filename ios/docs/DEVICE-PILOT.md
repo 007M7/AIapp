@@ -17,18 +17,24 @@
 | 本地仓库检查 | 12项通过，含原有28项小程序测试；不是Swift编译结果 |
 | HTTP／SQLite执行域测试 | 8项通过，含忙碌／服务模式用例 |
 | 原生Swift客户端测试 | 已加入macOS构建，尚待执行 |
-| IPA与模拟器截图 | 2026-10-27 00:12的GitHub任务40356790818被账户账单／额度限制阻止，未进入编译；没有生成新IPA |
-| 内置浏览器 | prototype/iphone-device-pilot/是可点击的界面审阅稿，数据为示例，不执行主板控制 |
+| IPA与模拟器截图 | 旧任务40356790818被账户限制阻止；本轮额度已恢复。40445251965发现自测终止函数返回类型错误，已修复；40445384815已成功完成自测、iphoneos编译、未签名IPA、模拟器三页截图和产物上传 |
+| 内置浏览器 | prototype/iphone-device-pilot/已改为真实设备联调，移除示例状态选择。2秒轮询状态、真实短鸣识别及回执；浏览器不提供BLE配网 |
 | 签名安装 | 使用D:/jev/Sideloadly/sideloadly.exe；按用户要求待审阅后再执行，尚未安装 |
 
 已推送分支feature/iphone-device-pilot。不能用PR #1在10月12日通过的Management checks作为本次iPhone编译证据。
 
-本机语音服务8766与独立设备网关8795已监听；只读请求鉴权通过。2026-10-27本轮核验时主板未在线，网关如实返回device_online=false、can_identify=false。尚未验证iPhone跨设备访问和主板真实短鸣回执。
+本机语音服务8766与独立设备网关8795已监听。2026-10-27本轮主板按键唤醒后上线：主板192.168.137.159→电脑热点192.168.137.1:8766；电脑上游WLAN为Goldman（192.168.0.101），以太网192.168.0.100。主板服务返回device_online=true、telemetry_fresh=true、service_ready=true、can_identify=true，固件0.5.10-selftest-adc。浏览器发送一次识别指令，实际得到completed回执；声音效果仍以用户耳听为准。未验证iPhone跨设备访问。
 
-浏览器已核验手动连接示例、识别等待与完成反馈、互动期间禁用操作及配网导航。预览不保存真实连接凭据，也不控制主板。
+浏览器已核验真实状态、识别等待与完成反馈。代理安全测试5项通过，验证同源／Host／路径边界、幂等键转发、错误和超时不重发。连接凭据仅在Node服务中读取，不下发页面、不写入前端存储；页面只保存操作编号与未确认标记。网关沿用SQLite执行记录。电池采样仍待核验，电量和充电状态保持未知。
+
+## 本机浏览器联调启动
+
+给Node预览进程设置DEVICE_PILOT_CONNECTION_FILE为本机私有connection.json的绝对路径，再运行node scripts/dev.mjs。默认仅监听127.0.0.1:5173；配置文件不得放在仓库静态目录或提交Git。未配置时代理返回503，不降级为示例成功。
+
+浏览器仅允许GET /__device/status、GET /__device/operations/{id}、POST /__device/identify。写操作要求本机同源Origin、固定自定义请求头、JSON空对象和UUID幂等键；由本机固定代理转发至已配置私网设备网关，不开放任意目标代理。POST结果不明时保留未确认并禁止自动重发；状态刷新与后台恢复只执行GET。需结束联调时停止本地预览进程；语音服务独立运行。
 
 ## 构建
 
 GitHub Actions手动触发ios-unsigned.yml，configuration=Debug。构建入口：BUILD_CONFIGURATION=Debug bash ios/tools/build-ipa.sh。
 
-构建资源恢复后：移植与客户端自测→真SwiftUI编译→未签名IPA→模拟器home/connect/device截图。已有preview-simulator.sh负责截图。通过之后，再用现有Sideloadly签名并单独验证iPhone局域网权限、扫码、BLE与真实回执。
+本轮上述构建链路已通过。按用户先审阅的要求，Sideloadly签名和安装暂缓；iPhone局域网权限、扫码、BLE及真实回执需后续真机单独验证。

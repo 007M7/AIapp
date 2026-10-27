@@ -8,9 +8,12 @@ import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { join, extname, resolve, dirname, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createPilotProxy, loadPilotConnection } from './device-pilot-proxy.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = Number(process.argv[2] || process.env.PORT || 5173);
+const pilotConnection = await loadPilotConnection(process.env.DEVICE_PILOT_CONNECTION_FILE);
+const pilotProxy = createPilotProxy(pilotConnection, {port: PORT});
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
   ".mjs": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8",
@@ -20,13 +23,14 @@ const TYPES = {
 
 createServer(async (req, res) => {
   try {
+    if (await pilotProxy(req, res)) return;
     let p = decodeURIComponent(new URL(req.url, "http://x").pathname);
     if (p === "/") p = "/prototype/index.html";
     const file = normalize(join(ROOT, p));
-    if (!file.startsWith(ROOT)) { res.writeHead(403).end("forbidden"); return; }  // 防路径穿越
+    if (file !== ROOT && !file.startsWith(ROOT + (process.platform === 'win32' ? '\\' : '/'))) { res.writeHead(403).end("forbidden"); return; }
     const st = await stat(file);
     if (st.isDirectory()) { res.writeHead(302, { Location: p + "/index.html" }).end(); return; }
-    res.writeHead(200, { "Content-Type": TYPES[extname(file)] || "application/octet-stream" });
+    res.writeHead(200, { "Content-Type": TYPES[extname(file)] || "application/octet-stream", "Cache-Control": "no-store" });
     res.end(await readFile(file));
   } catch {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }).end("404 —— 路径不存在");
