@@ -24,6 +24,7 @@ struct LabDeviceStatus: Decodable {
     let serviceReady: Bool?
     let supportsMobileVoice: Bool?
     let canMobileVoice: Bool?
+    let powerMode: String?
 
     var stateLabel: String {
         if !deviceOnline { return "未连接" }

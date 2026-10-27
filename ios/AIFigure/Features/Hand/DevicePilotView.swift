@@ -3,6 +3,8 @@ import SwiftUI
 struct DevicePilotView: View {
     @StateObject private var device = DevicePilotStore()
     @StateObject private var microphone = MobileVoiceRecorder()
+    @StateObject private var nearby = NearbyDeviceStore()
+    @State private var showNearby = false
     @State private var holding = false
     @Environment(\.scenePhase) private var scenePhase
     @State private var setup = false
@@ -34,7 +36,7 @@ struct DevicePilotView: View {
                     NavigationLink { detail } label: {
                         HStack {
                             Image(systemName: device.status?.deviceOnline == true ? "antenna.radiowaves.left.and.right" : "link")
-                            Text(microphone.active ? "正在听" : device.stateTitle).font(.subheadline.weight(.semibold))
+                            Text(microphone.active ? "正在听" : nearby.connected ? nearby.status?.label ?? "蓝牙已连接" : device.stateTitle).font(.subheadline.weight(.semibold))
                             Spacer()
                             Image(systemName: "chevron.right").font(.caption)
                         }.padding(15).background(T.card, in: RoundedRectangle(cornerRadius: 18))
@@ -43,12 +45,22 @@ struct DevicePilotView: View {
                         .frame(maxWidth: .infinity).frame(height: 380)
                         .background(Color.white, in: RoundedRectangle(cornerRadius: 30))
                         .accessibilityLabel("小鲸")
-                    if !device.connected {
-                        Button { scanner = true } label: {
-                            Label("扫码连接手办", systemImage: "qrcode.viewfinder").frame(maxWidth: .infinity).padding(10)
+                    if !nearby.connected {
+                        Button { showNearby = true } label: {
+                            Label("连接附近的手办", systemImage: "antenna.radiowaves.left.and.right").frame(maxWidth: .infinity).padding(10)
                         }.buttonStyle(.borderedProminent)
-                        Button("手动连接") { setup = true }.frame(maxWidth: .infinity)
                     } else {
+                        HStack {
+                            Button("响一下") { nearby.command("identify") }.disabled(nearby.working)
+                            Spacer()
+                            Button("音量与网络") { showNearby = true }
+                        }.padding(14).background(T.card, in: RoundedRectangle(cornerRadius: 16))
+                        if let status = nearby.status, !status.ready {
+                            Text(status.wifi ? "蓝牙操作可用，接通互动服务后可说话" : "蓝牙操作可用，连接网络后开启语音互动")
+                                .font(.subheadline).foregroundStyle(.secondary)
+                        }
+                    }
+                    if device.connected {
                         Text(microphone.active ? "松开发送" : microphone.preparing ? "准备麦克风…" : "按住说话")
                             .font(.headline).foregroundStyle(.white).frame(maxWidth:.infinity).padding(18)
                             .background(T.navy, in:RoundedRectangle(cornerRadius:14))
@@ -73,17 +85,24 @@ struct DevicePilotView: View {
                     if !device.message.isEmpty { Text(device.message).font(.footnote).foregroundStyle(.secondary) }
                     if !scanError.isEmpty { Text(scanError).font(.footnote).foregroundStyle(.secondary) }
                     if !microphone.message.isEmpty { Text(microphone.message).font(.footnote).foregroundStyle(.secondary) }
+                    if !nearby.message.isEmpty { Text(nearby.message).font(.footnote).foregroundStyle(.secondary) }
                 }.padding(22)
             }.background(T.paper).toolbar(.hidden, for: .navigationBar)
                 .navigationDestination(isPresented: $previewDetail) { detail }
                 .refreshable { await device.refresh() }
         }
         .tint(T.navy)
-        .task { device.resume() }
+        .task { device.resume(); nearby.resume() }
         .onChange(of: scenePhase) { phase in
-            if phase == .active { device.resume() } else { holding = false; microphone.finish(cancel:true); device.pause() }
+            if phase == .active { device.resume(); nearby.resume() } else { holding = false; microphone.finish(cancel:true); device.pause(); nearby.close() }
         }
         .onChange(of:microphone.ready) { audio in if let audio { device.sendVoice(audio); microphone.ready = nil } }
+        .onReceive(nearby.$gateway) { code in
+            guard let code, !device.connecting,
+                  !device.connected || device.address != code.server || device.credential != code.credential else { return }
+            Task { await device.importCode(code) }
+        }
+        .sheet(isPresented: $showNearby) { NearbyDeviceView(nearby: nearby) }
         .sheet(isPresented: $setup) { setupView }
         .sheet(isPresented: $scanner) {
             NavigationStack {
@@ -105,6 +124,7 @@ struct DevicePilotView: View {
             Section("当前状态") {
                 LabeledContent("手办", value: device.stateTitle)
                 LabeledContent("供电", value: device.powerTitle)
+                LabeledContent("待机", value: device.status?.powerMode == "desktop_online" ? "接电在线待机" : device.status?.powerMode == "battery_saving" ? "电池省电" : "等待状态更新")
                 LabeledContent("电量", value: "暂不可用")
                 LabeledContent("最后状态更新", value: device.lastContact)
                 if let result = device.operation { Text(result.label) }
@@ -112,8 +132,8 @@ struct DevicePilotView: View {
                 Button("刷新状态") { Task { await device.refresh() } }
             }
             Section("连接") {
-                Button("连接设置") { setup = true }
-                NavigationLink("Wi-Fi配网") { ProvisionView() }
+                Button("蓝牙、音量与网络") { showNearby = true }
+                Button("高级调试连接") { setup = true }
                 if device.connected { Button("断开并清除连接", role: .destructive) { device.disconnect() } }
             }
             Section("帮助信息") {
@@ -145,6 +165,7 @@ struct DevicePilotView: View {
                     if !device.message.isEmpty { Text(device.message).font(.footnote).foregroundStyle(.secondary) }
                 }
                 Section { Text("连接码由电脑上的手办服务提供。手机需接入同一局域网，并允许本地网络访问。") }
+                Section("调试工具") { Button("扫描调试连接码") { setup = false; scanner = true } }
             }.navigationTitle("连接设置")
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { setup = false } } }
         }

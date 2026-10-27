@@ -55,6 +55,18 @@ actor ProvisionSession {
         }
     }
 
+    /// Management endpoint shares this session's continuous CTR stream.
+    func control(_ payload: Data) async throws -> Data {
+        try claim(); defer { release() }
+        guard let ctr, !payload.isEmpty, payload.count <= 384 else {
+            throw ProvError.session("蓝牙请求无效")
+        }
+        do {
+            let reply = try await xfer("device-control", ctr.update(payload))
+            return ctr.update(reply)
+        } catch { broken = true; throw error }
+    }
+
     // NetworkConfigPayload:发 fields,取回响应里 respField 那个子消息
     private func config(_ fields: [PBField], _ respField: UInt32, _ what: String) async throws -> [UInt32: PBValue] {
         let outer = try await secure("prov-config", fields)

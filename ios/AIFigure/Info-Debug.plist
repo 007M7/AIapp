@@ -25,7 +25,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>用于搜索并连接你的手办,把 WiFi 配置通过蓝牙加密通道(Security 1)写进设备;密码只进手办,不进云端。</string>
+	<string>用于连接附近的手办，查看状态、调节音量，并安全设置网络。</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>UILaunchScreen</key>
@@ -47,5 +47,9 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_aifigure._tcp</string>
+	</array>
 </dict>
 </plist>
