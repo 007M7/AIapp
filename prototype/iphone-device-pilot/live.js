@@ -1,5 +1,6 @@
 'use strict';
 import {HoldMicrophone} from './microphone.mjs';
+import {deviceStateTitle,operationTitle} from './device-state.mjs';
 const screen = document.querySelector('#screen');
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let snapshot = null, operation = null, error = '', posting = false, fetching = false, uncertain = false;
@@ -12,17 +13,8 @@ const waiting = () => posting || ['accepted','sent','running'].includes(operatio
 const fresh = () => !error && snapshot?.device_online && snapshot?.telemetry_fresh;
 const canIdentify = () => fresh() && snapshot?.can_identify && snapshot?.service_ready !== false && !waiting() && !uncertain;
 const canTalk = () => fresh() && snapshot?.can_mobile_voice && !waiting() && !uncertain && !micState;
-function stateTitle() {
-  if(micState)return micState;
-  if (error) return '等待状态更新';
-  if (!snapshot) return '正在连接';
-  if (!snapshot.device_online) return '未连接';
-  if (snapshot.service_ready === false) return '暂时无法互动';
-  if (snapshot.busy) return '互动进行中';
-  if (!snapshot.telemetry_fresh) return '等待状态更新';
-  return {IDLE:'可互动',REC:'正在听',WAIT:'处理中',PLAY:'正在回应',ERR:'暂时无法互动'}[snapshot.telemetry?.state] || '等待状态更新';
-}
-const operationLabel = () => posting ? '正在发送，请稍候' : ({accepted:'服务器已受理',sent:'已发送，等待手办回执',running:operation?.kind==='voice'?'正在生成并播放回答':'手办正在执行',completed:operation?.kind==='voice'?'回答已播放完毕':'手办已执行，请核对短鸣',rejected:'手办未执行',failed:'本次互动未完成，请重试',unknown:'结果未确认，不会自动重发'}[operation?.status] || (uncertain ? '结果未确认，请查看手办；不会自动重发' : ''));
+const stateTitle=()=>deviceStateTitle(snapshot,{error,micState,posting});
+const operationLabel=()=>operationTitle(operation,{posting,uncertain,snapshot});
 const nav = title => `<div class="navhead"><button class="back" data-route="home">‹ 返回</button><h2>${title}</h2></div>`;
 const row = (label,value) => `<div class="row"><span>${esc(label)}</span><span>${esc(value)}</span></div>`;
 const action = (label,route) => `<button class="row-button" data-route="${route}">${label}<span>›</span></button>`;
@@ -73,13 +65,15 @@ async function refresh() {
       const id = operationId || snapshot.pending_operation_id;
       if (id) {
         operationId = id; sessionStorage.setItem('pilot.operation',id);
+        const prior=operation?.status;
         operation = await request(`operations/${id}`);
+        if(prior!==operation.status&&['completed','rejected','failed'].includes(operation.status))snapshot=await request('status');
         uncertain = operation.status === 'unknown';
         sessionStorage.setItem('pilot.uncertain',String(uncertain));
       }
     }
   } catch (failure) { error = failure.message || '暂时连不上电脑设备服务'; }
-  finally { fetching=false; render(); }
+  finally { fetching=false; render(); schedule(); }
 }
 async function identify() {
   if (!canIdentify()) return;
@@ -110,12 +104,18 @@ async function submitVoice(pcm) {
   } catch(failure) {uncertain=!(failure.status>=400&&failure.status<500);sessionStorage.setItem('pilot.uncertain',String(uncertain));error=uncertain?'结果未确认，不会自动重发':failure.message;}
   finally {posting=false;render();await refresh();}
 }
-function schedule() { clearInterval(timer); if (!document.hidden) {refresh(); timer=setInterval(refresh,2000);} }
+function schedule(immediate=false) {
+  clearTimeout(timer);
+  if(document.hidden)return;
+  if(immediate){refresh();return;}
+  const active=waiting()||snapshot?.busy||['WAIT','PLAY','REC'].includes(snapshot?.telemetry?.state);
+  timer=setTimeout(refresh,active?350:2000);
+}
 document.querySelector('#refresh-device').onclick=refresh;
 window.addEventListener('hashchange',()=>{microphone.stop(true);render(true);});
 window.addEventListener('pointerup',()=>microphone.stop());
 window.addEventListener('pointercancel',()=>microphone.stop(true));
 window.addEventListener('keyup',e=>{if([' ','Enter'].includes(e.key))microphone.stop();});
 window.addEventListener('blur',()=>microphone.stop(true));
-document.addEventListener('visibilitychange',()=>{if(document.hidden)microphone.stop(true);schedule();});
-render(); schedule();
+document.addEventListener('visibilitychange',()=>{if(document.hidden)microphone.stop(true);schedule(true);});
+render(); schedule(true);

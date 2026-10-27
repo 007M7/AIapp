@@ -28,13 +28,12 @@ struct LabDeviceStatus: Decodable {
     var stateLabel: String {
         if !deviceOnline { return "未连接" }
         if serviceReady == false { return "暂时无法互动" }
-        if busy == true { return "互动进行中" }
-        guard telemetryFresh, let telemetry else { return "等待状态更新" }
+        guard telemetryFresh, let telemetry else { return busy == true ? "互动进行中" : "等待状态更新" }
         switch telemetry.state {
         case "REC": return "正在听"
         case "WAIT": return "处理中"
         case "PLAY": return "正在回应"
-        case "IDLE": return "可互动"
+        case "IDLE": return busy == true ? "互动进行中" : "可互动"
         default: return "暂时无法互动"
         }
     }

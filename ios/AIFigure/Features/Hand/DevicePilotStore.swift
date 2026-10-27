@@ -139,12 +139,18 @@ final class DevicePilotStore: ObservableObject {
             guard generation == stamp, !Task.isCancelled else { return }
             status = snapshot; message = ""
             if !requestPending, let id = operation?.id ?? snapshot.pendingOperationId {
+                let wasWaiting = operation?.waiting == true
                 let result = try await client.operation(id)
                 guard generation == stamp, !Task.isCancelled else { return }
                 guard !requestPending, operation == nil || operation?.id == id else { return }
                 operation = result
                 sending = result.waiting
                 if !result.waiting { uncertain = result.status == "unknown" }
+                if wasWaiting && !result.waiting {
+                    let current = try await client.status()
+                    guard generation == stamp, !Task.isCancelled else { return }
+                    status = current
+                }
             }
         } catch {
             guard generation == stamp, !Task.isCancelled else { return }
@@ -194,7 +200,8 @@ final class DevicePilotStore: ObservableObject {
         polling = Task { [weak self] in
             while !Task.isCancelled {
                 await self?.refresh()
-                do { try await Task.sleep(nanoseconds: 2_000_000_000) } catch { break }
+                let active = self?.sending == true || self?.status?.busy == true || ["WAIT","PLAY","REC"].contains(self?.status?.telemetry?.state ?? "")
+                do { try await Task.sleep(nanoseconds: active ? 350_000_000 : 2_000_000_000) } catch { break }
             }
         }
     }

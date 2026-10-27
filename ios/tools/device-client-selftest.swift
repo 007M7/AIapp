@@ -2,6 +2,8 @@ import Foundation
 
 final class LabURLProtocol: URLProtocol {
     static var failureStatus: Int?
+    static var telemetryState = "IDLE"
+    static var busy = false
     static let token = String(repeating: "x", count: 48)
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
@@ -15,7 +17,7 @@ final class LabURLProtocol: URLProtocol {
         }
         if path == "/lab/v1/status" {
             response = """
-            {"data":{"device_id":"test","device_online":true,"firmware":"test","supports_identify":true,"can_identify":true,"telemetry_fresh":true,"telemetry_at":1,"pending_operation_id":null,"busy":false,"service_ready":true,"telemetry":{"state":"IDLE","usb_present":true,"battery_mv":1200,"battery_validation":"unverified","battery_percent":null,"charging":null,"rssi":-40}}}
+            {"data":{"device_id":"test","device_online":true,"firmware":"test","supports_identify":true,"can_identify":true,"telemetry_fresh":true,"telemetry_at":1,"pending_operation_id":null,"busy":\(Self.busy),"service_ready":true,"telemetry":{"state":"\(Self.telemetryState)","usb_present":true,"battery_mv":1200,"battery_validation":"unverified","battery_percent":null,"charging":null,"rssi":-40}}}
             """
         } else {
             if request.httpMethod == "POST" {
@@ -46,6 +48,11 @@ final class LabURLProtocol: URLProtocol {
         let client = try DeviceLabClient(address: "http://192.168.137.1:8795", token: LabURLProtocol.token, session: URLSession(configuration: config))
         let status = try await client.status()
         assert(status.stateLabel == "可互动" && status.telemetry?.batteryPercent == nil)
+        LabURLProtocol.busy = true; LabURLProtocol.telemetryState = "WAIT"
+        let preparing = try await client.status(); assert(preparing.stateLabel == "处理中")
+        LabURLProtocol.telemetryState = "PLAY"
+        let playing = try await client.status(); assert(playing.stateLabel == "正在回应")
+        LabURLProtocol.busy = false; LabURLProtocol.telemetryState = "IDLE"
         let result = try await client.identify(key: UUID())
         assert(result.status == "completed" && !result.waiting)
         _ = try await client.operation(result.id)
