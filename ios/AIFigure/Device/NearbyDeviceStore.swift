@@ -39,6 +39,8 @@ final class NearbyDeviceStore: ObservableObject {
     private var polling: Task<Void, Never>?
     private var action: Task<Void, Never>?
     private var lastGateway = ""
+    private var gatewayAt = Date.distantPast
+    @Published private(set) var lastRead: Date?
     private var deviceID: UUID?
     func resume() {
         guard !connected, !connecting, !scanning, !working,
@@ -107,19 +109,21 @@ final class NearbyDeviceStore: ObservableObject {
     func refresh() async {
         guard connected, !working else { return }
         working = true; defer { working = false }
-        do { try await readStatus() } catch { message = error.localizedDescription }
+        do { try await readStatus() } catch { close(); message = error.localizedDescription }
     }
     private func readStatus() async throws {
         let value = try await exchange("status")
         guard value["result"] as? String == "completed" else { throw ProvError.session(BLEControlProtocol.failure(value["code"] as? String ?? "")) }
         let current = try JSONDecoder().decode(BLEDeviceStatus.self, from: JSONSerialization.data(withJSONObject: value))
         status = current
+        lastRead = Date()
         message = ""
-        if current.wifi, current.ready, lastGateway != current.host {
+        if current.wifi, current.ready, lastGateway != current.host || Date().timeIntervalSince(gatewayAt) > 15 {
             let code = try await exchange("gateway")
             let data = try JSONSerialization.data(withJSONObject: ["type": "aifigure.device.v1", "server": code["server"] as? String ?? "", "credential": code["credential"] as? String ?? ""])
             gateway = try DeviceConnectionCode.parse(String(decoding: data, as: UTF8.self))
             lastGateway = current.host
+            gatewayAt = Date()
         }
     }
     func command(_ op: String, fields: [String: Any] = [:]) {
@@ -159,6 +163,6 @@ final class NearbyDeviceStore: ObservableObject {
     func close() {
         generation = UUID(); polling?.cancel(); polling = nil; action?.cancel(); action = nil
         ble.close(); session = nil; key = ""; connected = false; connecting = false; scanning = false; working = false
-        status = nil; gateway = nil; lastGateway = ""; deviceID = nil
+        status = nil; gateway = nil; lastGateway = ""; deviceID = nil; lastRead = nil; gatewayAt = .distantPast
     }
 }

@@ -17,6 +17,7 @@ struct DevicePilotView: View {
         let arguments = ProcessInfo.processInfo.arguments
         _setup = State(initialValue: arguments.contains("--preview-connect"))
         _previewDetail = State(initialValue: arguments.contains("--preview-device"))
+        _showNearby = State(initialValue: arguments.contains("--preview-bluetooth"))
         #endif
     }
 
@@ -30,13 +31,13 @@ struct DevicePilotView: View {
                             Text("日常搭子").font(.subheadline).foregroundStyle(.secondary)
                         }
                         Spacer()
-                        Button { setup = true } label: { Image(systemName: "link").font(.title3).padding(12) }
+                        Button { showNearby = true } label: { Image(systemName: "link").font(.title3).padding(12) }
                             .accessibilityLabel("连接设置")
                     }
                     NavigationLink { detail } label: {
                         HStack {
                             Image(systemName: device.status?.deviceOnline == true ? "antenna.radiowaves.left.and.right" : "link")
-                            Text(microphone.active ? "正在听" : nearby.connected ? nearby.status?.label ?? "蓝牙已连接" : device.stateTitle).font(.subheadline.weight(.semibold))
+                            Text(microphone.active ? "正在听" : connectionTitle).font(.subheadline.weight(.semibold))
                             Spacer()
                             Image(systemName: "chevron.right").font(.caption)
                         }.padding(15).background(T.card, in: RoundedRectangle(cornerRadius: 18))
@@ -94,12 +95,13 @@ struct DevicePilotView: View {
         .tint(T.navy)
         .task { device.resume(); nearby.resume() }
         .onChange(of: scenePhase) { phase in
-            if phase == .active { device.resume(); nearby.resume() } else { holding = false; microphone.finish(cancel:true); device.pause(); nearby.close() }
+            if phase == .active { device.resume(); nearby.resume() }
+            else if phase == .background { holding = false; microphone.finish(cancel:true); device.pause(); nearby.close() }
         }
         .onChange(of:microphone.ready) { audio in if let audio { device.sendVoice(audio); microphone.ready = nil } }
         .onReceive(nearby.$gateway) { code in
             guard let code, !device.connecting,
-                  !device.connected || device.address != code.server || device.credential != code.credential else { return }
+                  !device.connected || device.address != code.server else { return }
             Task { await device.importCode(code) }
         }
         .sheet(isPresented: $showNearby) { NearbyDeviceView(nearby: nearby) }
@@ -119,17 +121,26 @@ struct DevicePilotView: View {
         }
     }
 
+    private var connectionTitle: String {
+        if nearby.connected {
+            if nearby.status?.ready == true && !device.connected { return "手办已联网 · 手机服务待连接" }
+            return nearby.status?.label ?? "蓝牙已连接 · 等待状态"
+        }
+        return device.stateTitle
+    }
     private var detail: some View {
         List {
             Section("当前状态") {
-                LabeledContent("手办", value: device.stateTitle)
-                LabeledContent("供电", value: device.powerTitle)
+                LabeledContent("手办", value: connectionTitle)
+                LabeledContent("蓝牙", value: nearby.connected ? "已连接" : "未连接")
+                LabeledContent("Wi-Fi", value: nearby.status.map { $0.wifi ? $0.ssid : "未连接" } ?? "等待主板状态")
+                LabeledContent("供电", value: nearby.status.map { $0.usb ? "外接电源" : "未检测到外接电源" } ?? device.powerTitle)
                 LabeledContent("待机", value: device.status?.powerMode == "desktop_online" ? "接电在线待机" : device.status?.powerMode == "battery_saving" ? "电池省电" : "等待状态更新")
                 LabeledContent("电量", value: "暂不可用")
-                LabeledContent("最后状态更新", value: device.lastContact)
+                LabeledContent("最后状态更新", value: nearby.lastRead?.formatted(date: .omitted, time: .standard) ?? device.lastContact)
                 if let result = device.operation { Text(result.label) }
                 if !device.message.isEmpty { Text(device.message).foregroundStyle(.secondary) }
-                Button("刷新状态") { Task { await device.refresh() } }
+                Button("刷新状态") { Task { await nearby.refresh(); await device.refresh() } }
             }
             Section("连接") {
                 Button("蓝牙、音量与网络") { showNearby = true }
@@ -138,7 +149,7 @@ struct DevicePilotView: View {
             }
             Section("帮助信息") {
                 LabeledContent("设备", value: device.status?.deviceId ?? "未连接")
-                LabeledContent("固件", value: device.status?.firmware ?? "未知")
+                LabeledContent("固件", value: nearby.status?.firmware ?? device.status?.firmware ?? "未知")
                 Text("这是局域网设备试用版。连接码保存在本机钥匙串，手机与手办需能访问同一台电脑服务。")
                     .font(.footnote).foregroundStyle(.secondary)
             }
