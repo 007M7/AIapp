@@ -75,6 +75,9 @@ final class DevicePilotStore: ObservableObject {
     var canIdentify: Bool {
         connected && message.isEmpty && status?.canIdentify == true && !sending && !requestPending && !uncertain
     }
+    var canTalk: Bool {
+        connected && message.isEmpty && status?.canMobileVoice == true && !sending && !requestPending && !uncertain
+    }
     var powerTitle: String {
         guard status?.deviceOnline == true, status?.telemetryFresh == true,
               let telemetry = status?.telemetry else { return "供电状态未知" }
@@ -165,6 +168,24 @@ final class DevicePilotStore: ObservableObject {
                 requestPending = false; sending = false
                 uncertain = (error as? LabClientError)?.status == nil
                 message = uncertain ? "结果未确认，请查看手办；不会自动重发" : friendly(error)
+            }
+        }
+    }
+    func sendVoice(_ pcm: Data) {
+        guard canTalk, let client else { message = "手办暂不可接收语音，请检查连接"; return }
+        sending = true; requestPending = true; operation = nil; message = ""
+        let stamp = generation, key = UUID()
+        submitting = Task {
+            do {
+                let result = try await client.voice(pcm, key: key)
+                guard generation == stamp, !Task.isCancelled else { return }
+                requestPending = false; operation = result; sending = result.waiting
+                await refresh()
+            } catch {
+                guard generation == stamp, !Task.isCancelled else { return }
+                requestPending = false; sending = false
+                uncertain = (error as? LabClientError)?.status == nil
+                message = uncertain ? "结果未确认，不会自动重发" : friendly(error)
             }
         }
     }

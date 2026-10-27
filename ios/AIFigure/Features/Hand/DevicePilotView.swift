@@ -2,6 +2,8 @@ import SwiftUI
 
 struct DevicePilotView: View {
     @StateObject private var device = DevicePilotStore()
+    @StateObject private var microphone = MobileVoiceRecorder()
+    @State private var holding = false
     @Environment(\.scenePhase) private var scenePhase
     @State private var setup = false
     @State private var scanner = false
@@ -47,11 +49,20 @@ struct DevicePilotView: View {
                         }.buttonStyle(.borderedProminent)
                         Button("手动连接") { setup = true }.frame(maxWidth: .infinity)
                     } else {
+                        Text(microphone.active ? "松开发送" : microphone.preparing ? "准备麦克风…" : "按住说话")
+                            .font(.headline).foregroundStyle(.white).frame(maxWidth:.infinity).padding(18)
+                            .background(T.navy, in:RoundedRectangle(cornerRadius:14))
+                            .opacity(device.canTalk || microphone.active || microphone.preparing ? 1 : 0.4)
+                            .contentShape(Rectangle())
+                            .gesture(DragGesture(minimumDistance:0).onChanged { _ in
+                                if !holding && device.canTalk { holding = true; Task { await microphone.start() } }
+                            }.onEnded { _ in holding = false; microphone.finish() })
+                            .accessibilityLabel("按住说话，松开后由手办播放回答")
                         Button { device.identify() } label: {
                             Label(device.sending ? "等待手办回应" : "识别手办", systemImage: "waveform")
                                 .frame(maxWidth: .infinity).padding(10)
-                        }.buttonStyle(.borderedProminent).disabled(!device.canIdentify)
-                        Text("按住手办按键说话，松开后听回应")
+                        }.disabled(!device.canIdentify || microphone.active || microphone.preparing)
+                        Text("使用iPhone麦克风 · 手办播放回答")
                             .font(.footnote).foregroundStyle(.secondary).frame(maxWidth: .infinity)
                     }
                     if let result = device.operation {
@@ -61,6 +72,7 @@ struct DevicePilotView: View {
                     }
                     if !device.message.isEmpty { Text(device.message).font(.footnote).foregroundStyle(.secondary) }
                     if !scanError.isEmpty { Text(scanError).font(.footnote).foregroundStyle(.secondary) }
+                    if !microphone.message.isEmpty { Text(microphone.message).font(.footnote).foregroundStyle(.secondary) }
                 }.padding(22)
             }.background(T.paper).toolbar(.hidden, for: .navigationBar)
                 .navigationDestination(isPresented: $previewDetail) { detail }
@@ -69,8 +81,9 @@ struct DevicePilotView: View {
         .tint(T.navy)
         .task { device.resume() }
         .onChange(of: scenePhase) { phase in
-            if phase == .active { device.resume() } else { device.pause() }
+            if phase == .active { device.resume() } else { holding = false; microphone.finish(cancel:true); device.pause() }
         }
+        .onChange(of:microphone.ready) { audio in if let audio { device.sendVoice(audio); microphone.ready = nil } }
         .sheet(isPresented: $setup) { setupView }
         .sheet(isPresented: $scanner) {
             NavigationStack {

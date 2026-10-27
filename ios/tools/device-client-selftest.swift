@@ -20,7 +20,7 @@ final class LabURLProtocol: URLProtocol {
         } else {
             if request.httpMethod == "POST" {
                 assert(request.value(forHTTPHeaderField: "Idempotency-Key") != nil)
-                assert(request.value(forHTTPHeaderField: "Content-Type") == "application/json")
+                assert(request.value(forHTTPHeaderField: "Content-Type") == (path == "/lab/v1/voice" ? "application/octet-stream" : "application/json"))
             }
             response = "{\"data\":{\"id\":\"00000000000000000000000000000001\",\"status\":\"completed\",\"code\":\"\",\"created\":1,\"updated\":2}}"
         }
@@ -49,6 +49,7 @@ final class LabURLProtocol: URLProtocol {
         let result = try await client.identify(key: UUID())
         assert(result.status == "completed" && !result.waiting)
         _ = try await client.operation(result.id)
+        _ = try await client.voice(Data(repeating:0,count:16000), key:UUID())
         LabURLProtocol.failureStatus = 401
         do { _ = try await client.status(); fatalError("Unauthorized request accepted") }
         catch let error as LabClientError { assert(error.status == 401) }

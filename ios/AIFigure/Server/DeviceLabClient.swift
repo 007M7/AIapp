@@ -22,6 +22,8 @@ struct LabDeviceStatus: Decodable {
     let pendingOperationId: String?
     let busy: Bool?
     let serviceReady: Bool?
+    let supportsMobileVoice: Bool?
+    let canMobileVoice: Bool?
 
     var stateLabel: String {
         if !deviceOnline { return "未连接" }
@@ -44,6 +46,7 @@ struct LabOperation: Decodable {
     let code: String
     let created: Double
     let updated: Double
+    let kind: String?
 
     var waiting: Bool { ["accepted", "sent", "running"].contains(status) }
     var label: String {
@@ -51,7 +54,7 @@ struct LabOperation: Decodable {
         case "accepted": return "服务器已受理"
         case "sent": return "已发送，等待设备回执"
         case "running": return "设备正在执行"
-        case "completed": return "设备已执行，请核对短鸣"
+        case "completed": return kind == "voice" ? "回答已播放完毕" : "设备已执行，请核对短鸣"
         case "rejected": return "设备未执行"
         case "failed": return "设备执行失败"
         default: return "结果未确认，不会自动重发"
@@ -114,15 +117,15 @@ final class DeviceLabClient {
         let error: Detail
     }
 
-    private func request<T: Decodable>(_ path: String, key: UUID? = nil) async throws -> T {
+    private func request<T: Decodable>(_ path: String, key: UUID? = nil, audio: Data? = nil) async throws -> T {
         var request = URLRequest(url: base.appendingPathComponent(path))
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.timeoutInterval = 6
         if let key {
             request.httpMethod = "POST"
-            request.httpBody = Data("{}".utf8)
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = audio ?? Data("{}".utf8)
+            request.setValue(audio == nil ? "application/json" : "application/octet-stream", forHTTPHeaderField: "Content-Type")
             request.setValue(key.uuidString, forHTTPHeaderField: "Idempotency-Key")
         }
         let (data, response) = try await session.data(for: request)
@@ -140,6 +143,12 @@ final class DeviceLabClient {
 
     func status() async throws -> LabDeviceStatus { try await request("lab/v1/status") }
     func identify(key: UUID) async throws -> LabOperation { try await request("lab/v1/identify", key: key) }
+    func voice(_ pcm: Data, key: UUID) async throws -> LabOperation {
+        guard (16000...960000).contains(pcm.count), pcm.count % 2 == 0 else {
+            throw LabClientError(status: 400, message: "请录制0.5至30秒语音")
+        }
+        return try await request("lab/v1/voice", key: key, audio: pcm)
+    }
     func operation(_ id: String) async throws -> LabOperation {
         guard id.count == 32, id.allSatisfy({ "0123456789abcdef".contains($0) }) else {
             throw LabClientError(status: nil, message: "操作编号无效")
