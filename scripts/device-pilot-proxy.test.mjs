@@ -68,3 +68,15 @@ test('only explicit private HTTP configuration is accepted',async t=>{
   await writeFile(path,JSON.stringify({type:'aifigure.device.v1',server:'http://192.168.137.1:8795',credential}));
   assert.equal((await loadPilotConnection(path)).credential,credential);
 });
+test('voice upload preserves PCM bytes without extra forwarding or retry',async t=>{
+  const audio=Buffer.alloc(16000,12);let calls=0;
+  const f=await fixture(t,async(url,options)=>{
+    calls++;assert.equal(url,'http://192.168.137.1:8795/lab/v1/voice');
+    assert.equal(options.headers['Content-Type'],'application/octet-stream');assert.deepEqual(options.body,audio);
+    return Response.json({data:{id:'0'.repeat(32),status:'sent',kind:'voice'}},{status:202});
+  });
+  const headers={...f.headers,Origin:f.origin,'Content-Type':'application/octet-stream','Idempotency-Key':'12345678-1234-1234-1234-123456789abc'};
+  assert.equal((await fetch(f.origin+'/__device/voice',{method:'POST',headers,body:audio})).status,202);
+  assert.equal((await fetch(f.origin+'/__device/voice',{method:'POST',headers,body:Buffer.alloc(100)})).status,400);
+  assert.equal(calls,1);
+});

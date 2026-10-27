@@ -1,14 +1,19 @@
 'use strict';
+import {HoldMicrophone} from './microphone.mjs';
 const screen = document.querySelector('#screen');
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let snapshot = null, operation = null, error = '', posting = false, fetching = false, uncertain = false;
 let operationId = sessionStorage.getItem('pilot.operation') || null;
 uncertain = sessionStorage.getItem('pilot.uncertain') === 'true';
 let lastPaint = '', timer;
+let micState='';
+const microphone=new HoldMicrophone(state=>{micState=state;render();},pcm=>submitVoice(pcm),message=>{error=message;render();});
 const waiting = () => posting || ['accepted','sent','running'].includes(operation?.status);
 const fresh = () => !error && snapshot?.device_online && snapshot?.telemetry_fresh;
 const canIdentify = () => fresh() && snapshot?.can_identify && snapshot?.service_ready !== false && !waiting() && !uncertain;
+const canTalk = () => fresh() && snapshot?.can_mobile_voice && !waiting() && !uncertain && !micState;
 function stateTitle() {
+  if(micState)return micState;
   if (error) return '等待状态更新';
   if (!snapshot) return '正在连接';
   if (!snapshot.device_online) return '未连接';
@@ -17,13 +22,13 @@ function stateTitle() {
   if (!snapshot.telemetry_fresh) return '等待状态更新';
   return {IDLE:'可互动',REC:'正在听',WAIT:'处理中',PLAY:'正在回应',ERR:'暂时无法互动'}[snapshot.telemetry?.state] || '等待状态更新';
 }
-const operationLabel = () => posting ? '正在发送识别指令' : ({accepted:'服务器已受理',sent:'已发送，等待手办回执',running:'手办正在执行',completed:'手办已执行，请核对短鸣',rejected:'手办未执行',failed:'手办执行失败',unknown:'结果未确认，不会自动重发'}[operation?.status] || (uncertain ? '结果未确认，请查看手办；不会自动重发' : ''));
+const operationLabel = () => posting ? '正在发送，请稍候' : ({accepted:'服务器已受理',sent:'已发送，等待手办回执',running:operation?.kind==='voice'?'正在生成并播放回答':'手办正在执行',completed:operation?.kind==='voice'?'回答已播放完毕':'手办已执行，请核对短鸣',rejected:'手办未执行',failed:'本次互动未完成，请重试',unknown:'结果未确认，不会自动重发'}[operation?.status] || (uncertain ? '结果未确认，请查看手办；不会自动重发' : ''));
 const nav = title => `<div class="navhead"><button class="back" data-route="home">‹ 返回</button><h2>${title}</h2></div>`;
 const row = (label,value) => `<div class="row"><span>${esc(label)}</span><span>${esc(value)}</span></div>`;
 const action = (label,route) => `<button class="row-button" data-route="${route}">${label}<span>›</span></button>`;
 const time = value => value ? new Date(value * 1000).toLocaleTimeString('zh-CN', {hour12:false}) : '暂无记录';
 function home() {
-  return `<div class="page"><div class="head"><div><h1>小鲸</h1><p>日常搭子</p></div><button class="icon" data-route="connect" aria-label="连接设置">⌁</button></div><button class="state-row" data-route="device"><span class="live-dot ${fresh()?'online':''}"></span><span>${esc(stateTitle())}</span><small>›</small></button><div class="hero"><img src="/ios/AIFigure/Resources/Assets.xcassets/XiaojingFront.imageset/front.png" alt="小鲸正面形象"></div><button class="primary" id="identify" ${canIdentify()?'':'disabled'}>${waiting()?'等待手办回应':'识别手办'}</button><p class="hint">按住手办按键说话，松开后听回应</p>${operationLabel()?`<div class="result" role="status">${esc(operationLabel())}</div>`:''}${error?`<p class="message">${esc(error)}</p>`:snapshot&&!snapshot.device_online?'<p class="message">按一下手办按键，等待连接</p>':''}</div>`;
+  return `<div class="page"><div class="head"><div><h1>小鲸</h1><p>日常搭子</p></div><button class="icon" data-route="connect" aria-label="连接设置">⌁</button></div><button class="state-row" data-route="device"><span class="live-dot ${fresh()?'online':''}"></span><span>${esc(stateTitle())}</span><small>›</small></button><div class="hero"><img src="/ios/AIFigure/Resources/Assets.xcassets/XiaojingFront.imageset/front.png" alt="小鲸正面形象"></div><button class="primary hold-talk" id="talk" ${canTalk()||micState?'':'disabled'}>${micState?'松开发送':'按住说话'}</button><p class="hint">使用本机麦克风 · 手办播放回答</p>${snapshot&&!snapshot.supports_mobile_voice?'<p class="message">主板固件待升级，暂不能接收屏幕语音</p>':''}<button class="secondary" id="identify" ${canIdentify()&&!micState?'':'disabled'}>识别手办</button>${operationLabel()?`<div class="result" role="status">${esc(operationLabel())}</div>`:''}${error?`<p class="message">${esc(error)}</p>`:snapshot&&!snapshot.device_online?'<p class="message">按一下手办按键，等待连接</p>':''}</div>`;
 }
 function device() {
   const telemetry = snapshot?.telemetry;
@@ -47,6 +52,9 @@ function render(force = false) {
   document.querySelectorAll('aside button').forEach(b => b.classList.toggle('chosen',b.dataset.route === route));
   document.querySelectorAll('[data-route]').forEach(b => b.onclick = () => {location.hash=b.dataset.route});
   document.querySelector('#identify')?.addEventListener('click',identify);
+  const talk=document.querySelector('#talk');
+  talk?.addEventListener('pointerdown',e=>{if(canTalk()){e.preventDefault();error='';microphone.start();}});
+  talk?.addEventListener('keydown',e=>{if([' ','Enter'].includes(e.key)&&!e.repeat&&canTalk()){e.preventDefault();error='';microphone.start();}});
   document.querySelector('#refresh')?.addEventListener('click',refresh);
 }
 async function request(path, options = {}) {
@@ -91,8 +99,23 @@ async function identify() {
     error=uncertain?'结果未确认，请查看手办；不会自动重发':failure.message;
   } finally { posting=false; render(); await refresh(); }
 }
+async function submitVoice(pcm) {
+  if(posting||waiting())return;
+  posting=true;operation=null;operationId=null;error='';uncertain=true;
+  sessionStorage.removeItem('pilot.operation');sessionStorage.setItem('pilot.uncertain','true');render();
+  try {
+    operation=await request('voice',{method:'POST',headers:{'Content-Type':'application/octet-stream','Idempotency-Key':crypto.randomUUID()},body:pcm});
+    operationId=operation.id;sessionStorage.setItem('pilot.operation',operation.id);
+    uncertain=operation.status==='unknown';sessionStorage.setItem('pilot.uncertain',String(uncertain));
+  } catch(failure) {uncertain=!(failure.status>=400&&failure.status<500);sessionStorage.setItem('pilot.uncertain',String(uncertain));error=uncertain?'结果未确认，不会自动重发':failure.message;}
+  finally {posting=false;render();await refresh();}
+}
 function schedule() { clearInterval(timer); if (!document.hidden) {refresh(); timer=setInterval(refresh,2000);} }
 document.querySelector('#refresh-device').onclick=refresh;
-window.addEventListener('hashchange',()=>render(true));
-document.addEventListener('visibilitychange',schedule);
+window.addEventListener('hashchange',()=>{microphone.stop(true);render(true);});
+window.addEventListener('pointerup',()=>microphone.stop());
+window.addEventListener('pointercancel',()=>microphone.stop(true));
+window.addEventListener('keyup',e=>{if([' ','Enter'].includes(e.key))microphone.stop();});
+window.addEventListener('blur',()=>microphone.stop(true));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)microphone.stop(true);schedule();});
 render(); schedule();

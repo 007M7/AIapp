@@ -34,7 +34,7 @@ struct DevicePilotView: View {
                     NavigationLink { detail } label: {
                         HStack {
                             Image(systemName: device.status?.deviceOnline == true ? "antenna.radiowaves.left.and.right" : "link")
-                            Text(device.stateTitle).font(.subheadline.weight(.semibold))
+                            Text(microphone.active ? "正在听" : device.stateTitle).font(.subheadline.weight(.semibold))
                             Spacer()
                             Image(systemName: "chevron.right").font(.caption)
                         }.padding(15).background(T.card, in: RoundedRectangle(cornerRadius: 18))
