@@ -21,7 +21,7 @@ import CryptoKit
 
 var passed = 0
 func ok(_ name: String) { passed += 1; print("  ✔ \(name)") }
-func fail(_ name: String, _ detail: String) {
+func fail(_ name: String, _ detail: String) -> Never {
     print("  ✘ \(name): \(detail)")
     exit(1)
 }
