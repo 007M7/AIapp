@@ -78,8 +78,8 @@ struct DevicePilotView: View {
                         Text("使用iPhone麦克风 · 手办播放回答")
                             .font(.footnote).foregroundStyle(.secondary).frame(maxWidth: .infinity)
                     }
-                    if let result = device.operation {
-                        Text(result.label).font(.subheadline).padding(14)
+                    if device.operation != nil {
+                        Text(device.operationTitle).font(.subheadline).padding(14)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(T.card, in: RoundedRectangle(cornerRadius: 16))
                     }
@@ -138,7 +138,7 @@ struct DevicePilotView: View {
                 LabeledContent("待机", value: device.status?.powerMode == "desktop_online" ? "接电在线待机" : device.status?.powerMode == "battery_saving" ? "电池省电" : "等待状态更新")
                 LabeledContent("电量", value: "暂不可用")
                 LabeledContent("最后状态更新", value: nearby.lastRead?.formatted(date: .omitted, time: .standard) ?? device.lastContact)
-                if let result = device.operation { Text(result.label) }
+                if device.operation != nil { Text(device.operationTitle) }
                 if !device.message.isEmpty { Text(device.message).foregroundStyle(.secondary) }
                 Button("刷新状态") { Task { await nearby.refresh(); await device.refresh() } }
             }

@@ -26,6 +26,14 @@ struct LabDeviceStatus: Decodable {
     let canMobileVoice: Bool?
     let powerMode: String?
 
+    func canResumeAfterReconnect(_ operation: LabOperation) -> Bool {
+        operation.status == "unknown" &&
+        ["device_disconnected", "connection_replaced", "gateway_restarted"].contains(operation.code) &&
+        deviceOnline && telemetryFresh && serviceReady == true && busy == false &&
+        telemetry?.state == "IDLE" && pendingOperationId == nil &&
+        (canIdentify || canMobileVoice == true)
+    }
+
     var stateLabel: String {
         if !deviceOnline { return "未连接" }
         if serviceReady == false { return "暂时无法互动" }

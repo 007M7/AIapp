@@ -75,6 +75,11 @@ final class DevicePilotStore: ObservableObject {
     var canIdentify: Bool {
         connected && message.isEmpty && status?.canIdentify == true && !sending && !requestPending && !uncertain
     }
+    var operationTitle: String {
+        guard let operation else { return "" }
+        if status?.canResumeAfterReconnect(operation) == true { return "上次结果未确认；现在可重新发起" }
+        return operation.label
+    }
     var canTalk: Bool {
         connected && message.isEmpty && status?.canMobileVoice == true && !sending && !requestPending && !uncertain
     }
@@ -152,6 +157,7 @@ final class DevicePilotStore: ObservableObject {
                     status = current
                 }
             }
+            if let operation, status?.canResumeAfterReconnect(operation) == true { uncertain = false }
         } catch {
             guard generation == stamp, !Task.isCancelled else { return }
             if let failure = error as? LabClientError, [401,403].contains(failure.status ?? 0) {
