@@ -7,8 +7,11 @@ struct AIFigureApp: App {
     var body: some Scene {
         WindowGroup {
             #if DEVICE_PILOT
-            DevicePilotView()
-                .environmentObject(env)
+            if ProcessInfo.processInfo.arguments.contains(where: { $0.hasPrefix("--preview-") }) {
+                DevicePilotView().environmentObject(env)
+            } else {
+                LivingRoomPilotView().environmentObject(env)
+            }
             #else
             RootTabView()
                 .environmentObject(env)

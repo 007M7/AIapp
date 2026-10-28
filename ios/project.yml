@@ -25,6 +25,9 @@ targets:
     sources:
       - path: AIFigure               # 整个源码目录自动入工程;Info.plist 会被自动排除,Assets.xcassets 自动进资源
         excludes: [Info-Debug.plist]
+      - path: LivingRoomAssets
+        type: folder
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.aiapp.figure   # 占位;Sideloadly 免费签会自动加后缀
