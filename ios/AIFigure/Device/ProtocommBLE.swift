@@ -99,13 +99,23 @@ final class ProtocommBLE: NSObject {
         }
         peripheral = p
         p.delegate = self
-        try await withTimeout(Self.connectTimeout, "连接超时,请靠近手办再试") { self.central.connect(p) }
-        // 读写前必须先拿过服务和特征值
-        p.discoverServices([selectedService])
-        try await withTimeout(Self.connectTimeout, "这个设备上找不到配网服务:是不是没进配网模式,或固件太旧?") {}
+        try await withTimeout(Self.connectTimeout, "连接超时，请靠近手办再试") {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                self.connectCont = continuation
+                self.central.connect(p)
+            }
+        }
+        // CoreBluetooth is asynchronous: wait until service and characteristic discovery finishes.
+        let missingService = management ? "未找到手办蓝牙控制服务，请确认主板已唤醒并重试" : "未找到配网服务，请确认主板处于配网模式"
+        try await withTimeout(Self.connectTimeout, missingService) {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                self.serviceCont = continuation
+                p.discoverServices([self.selectedService])
+            }
+        }
         guard chars[.protoVer] != nil, chars[.provSession] != nil,
               (management ? chars[.control] != nil : (chars[.provConfig] != nil && chars[.provCtrl] != nil)) else {
-            throw ProvError.ble("这个设备上找不到配网服务:是不是没进配网模式,或固件太旧?")
+            throw ProvError.ble(management ? "手办蓝牙控制服务不完整，请检查固件版本" : "配网服务不完整，请重新进入配网模式")
         }
     }
 
@@ -199,7 +209,7 @@ extension ProtocommBLE: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let e = error { failPending(e.localizedDescription); return }
         guard let svc = peripheral.services?.first(where: { $0.uuid == selectedService }) else {
-            failPending("这个设备上找不到配网服务:是不是没进配网模式,或固件太旧?"); return
+            failPending(management ? "未找到手办蓝牙控制服务，请确认主板已唤醒并重试" : "未找到配网服务，请确认主板处于配网模式"); return
         }
         let wanted = Endpoint.allCases.map(\.cbuuid)
         peripheral.discoverCharacteristics(wanted, for: svc)
