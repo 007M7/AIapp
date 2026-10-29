@@ -18,6 +18,6 @@ for SCREEN in living-room home connect device bluetooth chat; do
   else
     xcrun simctl launch --terminate-running-process "$DEVICE" com.aiapp.figure "--preview-$SCREEN"
   fi
-  sleep 3
+  if [ "$SCREEN" = "living-room" ]; then sleep 15; else sleep 3; fi
   xcrun simctl io "$DEVICE" screenshot "$IOS_DIR/preview/$SCREEN.png"
 done
