@@ -1,11 +1,9 @@
 import {DiaryStore,MemoStore,PersonalDiaryStore,localDay,monthCells} from './diary.mjs';
 
-const LONG_EXAMPLE={title:'写给今天的你',body:'今天早上，窗帘边透进来一小块光。我原本打算再眯一会儿，可那块光慢慢爬到地毯上，刚好落在鲸鱼图案的尾巴旁边，看起来像它悄悄游到了岸上。\n\n我坐起来看了好一会儿，想着要不要把地毯整理一下。最后当然整理了，只是中途发现垫子下面藏着一颗糖，于是稍微停下来检查了一下它的味道。嗯，这是必要的质量检查，和贪吃完全没有关系。\n\n下午的云走得很慢。一开始是一团圆圆的，像一只睡着的小鱼；后来风吹过来，它伸出一条长长的尾巴，又变成了一艘船。我试着猜它会去哪里，猜了好几个地方，最后决定让它自己选。反正它也不会乖乖听我的。\n\n房间里安安静静的，我把想说的话写进本子。其实今天没有发生什么惊天动地的大事，只有光、云，还有那颗不小心被发现的糖。可是把它们记下来之后，突然觉得这样的一天也有自己的样子。\n\n如果你看到这里，记得抬头看看窗外。要是没什么特别的也没关系，普通的风景也值得看一眼。至于我？我会继续坐在这里，认真考虑明天的零食应该放在哪里。'};
-
 export function initDiary(){
   const panel=document.querySelector('#diary-panel'),trigger=document.querySelector('#wall-diary'),close=document.querySelector('#diary-close'),content=document.querySelector('#diary-content');
   let storage;try{storage=window.localStorage}catch{storage={getItem(){throw Error('unavailable')},setItem(){throw Error('unavailable')}}}
-  const store=new DiaryStore(storage),memos=new MemoStore(storage),personal=new PersonalDiaryStore(storage);let today=store.ensureToday(),month=today.slice(0,7),view='closed',tapTimer=null;
+  const store=new DiaryStore(storage,{demo:false}),memos=new MemoStore(storage),personal=new PersonalDiaryStore(storage);let today=store.ensureToday(),month=today.slice(0,7),view='closed',tapTimer=null;
   function refreshBadge(){const unread=store.unread(today);trigger.classList.toggle('has-new',unread);trigger.setAttribute('aria-label',unread?'小鲸的日记，有新日记':'小鲸的日记');trigger.title=unread?'小鲸的日记 · 有新日记':'小鲸的日记'}
   function checkDay(){const day=localDay();if(day!==today){today=store.ensureToday();refreshBadge()}}
   function showEntry(item,day){
@@ -51,7 +49,7 @@ export function initDiary(){
       b.setAttribute('aria-label',`${day}${record||mine?' 有日记':''}${saved?' 有备忘':''}`);if(record||mine)b.classList.add('has-entry');if(saved)b.classList.add('has-memo');if(day===today)b.classList.add('today');if(store.unread(day))b.classList.add('unread');
       b.addEventListener('click',()=>{checkDay();if(day>today){clearTimeout(tapTimer);tapTimer=null;memo(day);return}if(tapTimer&&pendingDay===day){clearTimeout(tapTimer);tapTimer=null;editDiary(day);return}clearTimeout(tapTimer);pendingDay=day;tapTimer=setTimeout(()=>{tapTimer=null;if(view==='calendar'&&!panel.hidden)entry(day)},450)});grid.append(b)
     }
-    content.append(bar,grid);const demo=document.createElement('button');demo.className='diary-demo';demo.textContent='查看长文示例';demo.addEventListener('click',()=>showEntry(LONG_EXAMPLE,today));content.append(demo)
+    content.append(bar,grid)
   }
   function closePanel(){clearTimeout(tapTimer);tapTimer=null;panel.hidden=true;view='closed';trigger.focus()}
   trigger.addEventListener('click',()=>{checkDay();panel.hidden=false;month=today.slice(0,7);if(store.unread(today))entry(today);else calendar();close.focus()});close.addEventListener('click',closePanel);panel.addEventListener('click',e=>{if(e.target===panel)closePanel()});panel.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();closePanel()}else if(e.key==='Tab'){const focusable=[...panel.querySelectorAll('button:not(:disabled), textarea, select, input')];if(!focusable.length)return;const i=focusable.indexOf(document.activeElement);if(e.shiftKey&&i<=0){e.preventDefault();focusable.at(-1).focus()}else if(!e.shiftKey&&i===focusable.length-1){e.preventDefault();focusable[0].focus()}}});document.addEventListener('visibilitychange',()=>{if(!document.hidden){checkDay();if(view==='calendar')calendar()}});setInterval(checkDay,60000);refreshBadge();

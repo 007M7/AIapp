@@ -92,5 +92,15 @@
 .chat-message{padding-top:20px;margin-bottom:12px}
 .message-time,.chat-message.mine .message-time{left:0;right:0;top:0;bottom:auto;text-align:center;color:#99aab4;font-size:10px}
 
-/* 实机适配：原场景铺满设备，浏览器调试栏不显示。 */
+/* 按住说话时禁止文本选择和系统长按菜单；输入框仍可正常编辑。 */
+.dock,.dock-item,.dock-item span,.dock-item svg,.chat-hold,.chat-mode-toggle{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.dock .dock-item{touch-action:manipulation}.dock .dock-mic,.chat-hold{touch-action:none}
+
 .ios-preview{background:#789bc8;overflow:hidden}.ios-preview .workspace{display:block;padding:0}.ios-preview .workspace>aside{display:none}.ios-preview .stage{width:100vw;height:100dvh;aspect-ratio:auto;border:0;border-radius:0}.ios-preview .island,.ios-preview .badge{display:none}.ios-preview .dock{bottom:max(12px,env(safe-area-inset-bottom))}.ios-preview .chat-safe{height:max(48px,env(safe-area-inset-top))}.ios-preview .chat-history,.ios-preview .chat-settings{padding-top:max(48px,env(safe-area-inset-top))}.ios-preview .wall-tools{top:max(10%,env(safe-area-inset-top))}
+
+.pilot-settings[hidden]{display:none}.pilot-settings{position:absolute;inset:0;z-index:11;background:#f3f8fa;padding-top:max(48px,env(safe-area-inset-top));color:#36536b}.pilot-settings-top{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding:2px 14px 12px;background:#f9fcfe;border-bottom:1px solid #d7e4eb;text-align:center}.pilot-settings-back{border:0;background:transparent;color:#406d8a;padding:0;height:38px;font-size:35px;line-height:1}.pilot-connect{display:flex;align-items:center;gap:10px;width:calc(100% - 28px);margin:18px 14px!important;padding:16px;border:1px solid #e0ebef;border-radius:16px;background:#fff;text-align:left;color:#36536b}.live-device-state{margin-left:auto;font-size:12px;color:#8ba5b4}.dock .dock-mic.is-holding{transform:scale(.93)}.live-source{display:block;color:#8ca3b0;font-size:10px;margin-top:3px}.mine .live-source{text-align:right}.live-empty{text-align:center;color:#94a8b4;font-size:13px;padding-top:60px}.live-older{display:block;margin:0 auto 15px!important;border:0;background:transparent;color:#6595ad;font-size:12px}
+
+.crop-editor{position:absolute;inset:0;z-index:5;padding-top:max(42px,env(safe-area-inset-top));background:#24364a;color:white}.crop-editor .history-title{background:#24364a;color:#fff;border:0}.crop-editor .crop-back{border:0;background:transparent;color:white;font-size:35px;padding:0}.crop-editor .crop-confirm{border:0;background:transparent;color:#b7e6ff;padding:6px;font-size:14px}.crop-area{height:calc(100% - 70px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px}.crop-canvas{display:block;max-width:100%;max-height:75%;width:auto;height:auto;touch-action:none}.crop-area p{font:12px system-ui,sans-serif;color:#d5e3ed;margin:12px}
+
+.pilot-home-status{position:absolute;z-index:6;left:16px;top:max(50px,calc(env(safe-area-inset-top) + 8px));padding:7px 12px;border:1px solid #ffffff9c;border-radius:18px;background:#edf8ffb8;color:#355e78;font:12px system-ui,sans-serif;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);pointer-events:none}
+
+.chat-preview .pending-discard{align-self:flex-end;border:0;background:transparent;color:#937c72;font-size:11px;padding:5px 12px}

@@ -12,9 +12,12 @@ xcrun simctl bootstatus "$DEVICE" -b
 xcrun simctl status_bar "$DEVICE" override --time '9:41' --batteryState charged --batteryLevel 100
 xcrun simctl install "$DEVICE" "$BUILD/products/AIFigure.app"
 mkdir -p "$IOS_DIR/preview"
-for SCREEN in home connect device bluetooth chat; do
-  ARG="--preview-$SCREEN"
-  xcrun simctl launch --terminate-running-process "$DEVICE" com.aiapp.figure "$ARG"
+for SCREEN in living-room home connect device bluetooth chat; do
+  if [ "$SCREEN" = "living-room" ]; then
+    xcrun simctl launch --terminate-running-process "$DEVICE" com.aiapp.figure
+  else
+    xcrun simctl launch --terminate-running-process "$DEVICE" com.aiapp.figure "--preview-$SCREEN"
+  fi
   sleep 3
   xcrun simctl io "$DEVICE" screenshot "$IOS_DIR/preview/$SCREEN.png"
 done
