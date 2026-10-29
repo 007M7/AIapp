@@ -68,7 +68,7 @@ import CryptoKit
                 let file=try await cacheAudio(id,side);guard stamp==audioRequestID else { return }
                 let audio=try AVAudioPlayer(contentsOf:file);audio.delegate=audioDelegate;audio.prepareToPlay();guard audio.play() else { throw LabClientError(status:nil,message:"语音播放失败") }
                 audioPlayer=audio;playingState="playing";publish()
-            } catch { guard stamp==audioRequestID else { return };playingKey="";playingState="idle";publish();webView?.evaluateJavaScript("window.pilotAudioFailed && window.pilotAudioFailed()") }
+            } catch { guard stamp==audioRequestID else { return };playingKey="";playingState="idle";publish();webView?.evaluateJavaScript("window.pilotAudioFailed && window.pilotAudioFailed()", completionHandler: nil) }
         }
     }
     private lazy var audioDelegate = PilotAudioDelegate { [weak self] player in
