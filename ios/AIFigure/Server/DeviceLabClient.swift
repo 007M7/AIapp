@@ -156,6 +156,22 @@ final class DeviceLabClient {
         return try decoder.decode(Envelope<T>.self, from: data).data
     }
 
+    func chatAudio(id: String, side: String) async throws -> Data {
+        guard id.range(of: "^[0-9a-f]{32}$", options: .regularExpression) != nil, ["user", "assistant"].contains(side) else {
+            throw LabClientError(status:400,message:"语音信息无效")
+        }
+        var request = URLRequest(url: base.appendingPathComponent("lab/v1/chat/\(id)/audio/\(side)"))
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.timeoutInterval = 15
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
+              data.count >= 44, data.count <= 4_000_044, String(data: data.prefix(4), encoding: .ascii) == "RIFF" else {
+            throw LabClientError(status: (response as? HTTPURLResponse)?.statusCode, message:"语音暂时无法读取")
+        }
+        return data
+    }
+
     func status() async throws -> LabDeviceStatus { try await request("lab/v1/status") }
     func identify(key: UUID) async throws -> LabOperation { try await request("lab/v1/identify", key: key) }
     func interrupt(key: UUID) async throws -> LabOperation { try await request("lab/v1/interrupt", key: key) }

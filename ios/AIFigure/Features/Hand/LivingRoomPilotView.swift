@@ -1,6 +1,8 @@
 import SwiftUI
 import WebKit
 import Combine
+import AVFoundation
+import CryptoKit
 
 @MainActor final class LivingRoomController: ObservableObject {
     let device = DevicePilotStore()
@@ -14,6 +16,65 @@ import Combine
     private var held = false
     private var pressID = UUID()
     private var started = false
+    private var audioPlayer: AVAudioPlayer?
+    private var playingKey = ""
+    private var playingState = "idle"
+    private var audioRequestID = UUID()
+    private var audioPrefetching = false
+    private var audioCacheRoot: URL? {
+        guard let root = try? FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true) else { return nil }
+        let hash = SHA256.hash(data: Data(device.chatScope.utf8)).map { String(format:"%02x", $0) }.joined()
+        let folder = root.appendingPathComponent("ChatAudio", isDirectory:true).appendingPathComponent(hash, isDirectory:true)
+        try? FileManager.default.createDirectory(at:folder, withIntermediateDirectories:true)
+        return folder
+    }
+    private func audioFile(_ id: String, _ side: String) -> URL? {
+        guard id.range(of:"^[0-9a-f]{32}$",options:.regularExpression) != nil, ["user","assistant"].contains(side) else { return nil }
+        return audioCacheRoot?.appendingPathComponent(id + "-" + side + ".wav")
+    }
+    private func cacheAudio(_ id: String, _ side: String) async throws -> URL {
+        guard let file=audioFile(id,side) else { throw LabClientError(status:nil,message:"语音信息无效") }
+        if FileManager.default.fileExists(atPath:file.path) { return file }
+        let data=try await device.chatAudio(id:id,side:side)
+        try data.write(to:file,options:[.atomic,.completeFileProtectionUntilFirstUserAuthentication])
+        return file
+    }
+    private func prefetchAudio() {
+        guard device.connected,!audioPrefetching else { return }
+        let candidates=history.cache.turns.flatMap { turn -> [(String,String)] in
+            var items:[(String,String)]=[]
+            if (turn.userAudioBytes ?? 0)>0 { items.append((turn.id,"user")) }
+            if (turn.assistantAudioBytes ?? 0)>0 { items.append((turn.id,"assistant")) }
+            return items
+        }.filter { pair in guard let file=audioFile(pair.0,pair.1) else { return false }; return !FileManager.default.fileExists(atPath:file.path) }
+        guard !candidates.isEmpty else { return };audioPrefetching=true
+        Task {
+            defer { audioPrefetching=false }
+            for (id,side) in candidates { guard device.connected else { return }; do { _ = try await cacheAudio(id,side) } catch { return } }
+        }
+    }
+    private func playAudio(_ id:String, _ side:String) {
+        guard !microphone.active && !microphone.preparing else { return }
+        let key=id+":"+side
+        if playingKey==key, let player=audioPlayer {
+            if player.isPlaying { player.pause();playingState="paused" }
+            else if player.currentTime < player.duration { player.play();playingState="playing" }
+            else { player.currentTime=0;player.play();playingState="playing" }
+            publish();return
+        }
+        audioRequestID=UUID();let stamp=audioRequestID;audioPlayer?.stop();audioPlayer=nil;playingKey=key;playingState="loading";publish()
+        Task {
+            do {
+                let file=try await cacheAudio(id,side);guard stamp==audioRequestID else { return }
+                let audio=try AVAudioPlayer(contentsOf:file);audio.delegate=audioDelegate;audio.prepareToPlay();guard audio.play() else { throw LabClientError(status:nil,message:"语音播放失败") }
+                audioPlayer=audio;playingState="playing";publish()
+            } catch { guard stamp==audioRequestID else { return };playingKey="";playingState="idle";publish();webView?.evaluateJavaScript("window.pilotAudioFailed && window.pilotAudioFailed()") }
+        }
+    }
+    private lazy var audioDelegate = PilotAudioDelegate { [weak self] player in
+        guard let self, self.audioPlayer === player else { return }
+        self.playingKey="";self.playingState="idle";self.publish()
+    }
     private struct PendingText: Codable { let text: String; let created: Date }
     private var pendingText: PendingText?
     private var pendingFile: URL? {
@@ -54,11 +115,12 @@ import Combine
     func setActive(_ active: Bool) {
         volumeBridge.setForeground(active)
         if active { device.resume(); nearby.resume(); history.start(device); scheduleUpdate() }
-        else { held = false; pressID = UUID(); microphone.finish(cancel: true); history.stop(); device.pause(); nearby.close() }
+        else { audioRequestID=UUID(); audioPlayer?.stop();audioPlayer=nil;playingKey="";playingState="idle"; held = false; pressID = UUID(); microphone.finish(cancel: true); history.stop(); device.pause(); nearby.close() }
     }
     private func scheduleUpdate() { DispatchQueue.main.async { [weak self] in self?.publish() } }
     func publish() {
         volumeBridge.configure(device: device, nearby: nearby)
+        prefetchAudio()
         let encoder = JSONEncoder()
         guard let turns = try? encoder.encode(history.cache.turns),
               let rows = try? JSONSerialization.jsonObject(with: turns) else { return }
@@ -69,6 +131,9 @@ import Combine
         let payload: [String: Any] = ["state": device.stateTitle, "connected": device.connected,
             "canTalk": device.canBeginVoice, "recording": microphone.active,
             "preparing": microphone.preparing || device.interrupting, "message": message,
+            "thinking": (device.status?.telemetry?.state == "WAIT" || device.sending) && (history.cache.turns.last?.assistantText.isEmpty ?? true),
+            "audioKey": playingKey, "audioState": playingState,
+            "pendingUncertain": device.operation?.status == "unknown" || (!device.message.isEmpty && !device.sending),
             "turns": rows, "hasOlder": history.cache.hasOlder, "historyNote": history.note, "pendingText": pendingText?.text ?? ""]
         guard let data = try? JSONSerialization.data(withJSONObject: payload),
               let json = String(data: data, encoding: .utf8) else { return }
@@ -80,6 +145,7 @@ import Combine
         case "ready": start(); publish()
         case "settings": showDevice = true
         case "history": Task { await history.refresh(device, older: true) }
+        case "audio": if let id=message["id"] as? String, let side=message["side"] as? String { playAudio(id,side) }
         case "dismiss-pending": clearPending(); publish()
         case "voice-start":
             guard !held else { return }
@@ -119,11 +185,17 @@ import Combine
     }
 }
 
+final class PilotAudioDelegate: NSObject, AVAudioPlayerDelegate {
+    let finished: (AVAudioPlayer) -> Void
+    init(_ finished:@escaping (AVAudioPlayer) -> Void) { self.finished=finished }
+    func audioPlayerDidFinishPlaying(_ player:AVAudioPlayer, successfully flag:Bool) { DispatchQueue.main.async { self.finished(player) } }
+}
+
 struct LivingRoomPilotView: View {
     @StateObject private var pilot = LivingRoomController()
     @Environment(\.scenePhase) private var phase
     var body: some View {
-        LivingRoomWebView(pilot: pilot).ignoresSafeArea()
+        LivingRoomWebView(pilot: pilot).ignoresSafeArea(.container, edges: .all)
             .sheet(isPresented: $pilot.showDevice) { NearbyDeviceView(nearby: pilot.nearby) }
             .onAppear { pilot.start() }
             .onChange(of: phase) { value in pilot.setActive(value == .active) }
@@ -150,6 +222,9 @@ struct LivingRoomWebView: UIViewRepresentable {
         config.userContentController.addUserScript(WKUserScript(source: "window.nativePilot = true;", injectionTime: .atDocumentStart, forMainFrameOnly: true))
         let view = WKWebView(frame: .zero, configuration: config)
         view.navigationDelegate = context.coordinator; view.isOpaque = false; view.scrollView.isScrollEnabled = false
+        view.scrollView.contentInsetAdjustmentBehavior = .never
+        view.scrollView.contentInset = .zero
+        view.scrollView.pinchGestureRecognizer?.isEnabled = false
         pilot.webView = view
         if let url = URL(string: "xiaojing://scene/index.html") { view.load(URLRequest(url: url)) }
         return view

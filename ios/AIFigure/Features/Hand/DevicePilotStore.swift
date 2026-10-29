@@ -96,6 +96,10 @@ final class DevicePilotStore: ObservableObject {
         guard let client, connected else { throw LabClientError(status:nil,message:"离线记录") }
         return try await client.chat(since:since,before:before)
     }
+    func chatAudio(id: String, side: String) async throws -> Data {
+        guard let client, connected else { throw LabClientError(status:nil,message:"请连接手办服务") }
+        return try await client.chatAudio(id:id, side:side)
+    }
     func prepareVoice() async -> Bool {
         if canTalk { return true }
         guard canInterrupt, let client else { return false }

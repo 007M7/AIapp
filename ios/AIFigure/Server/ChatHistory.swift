@@ -13,6 +13,8 @@ struct LabChatTurn: Codable, Identifiable {
     let userStatus: String
     let assistantText: String
     let assistantStatus: String
+    var userAudioBytes: Int? = nil
+    var assistantAudioBytes: Int? = nil
     var assistantNote: String {
         switch assistantStatus {
         case "interrupted": return "已打断"
