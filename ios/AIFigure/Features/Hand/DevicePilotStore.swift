@@ -265,7 +265,7 @@ final class DevicePilotStore: ObservableObject {
             }
         }
     }
-    func sendText(_ text: String) {
+    func sendText(_ text: String, onAccepted: ((LabOperation) -> Void)? = nil) {
         guard canTalk,let client else { message="暂时无法发送，请检查连接";return }
         sending=true;requestPending=true;operation=nil;message=""
         let stamp=generation,key=UUID()
@@ -273,7 +273,7 @@ final class DevicePilotStore: ObservableObject {
             do {
                 let result=try await client.text(text,key:key)
                 guard stamp==generation,!Task.isCancelled else { return }
-                requestPending=false;operation=result;sending=result.waiting
+                requestPending=false;operation=result;sending=result.waiting;onAccepted?(result)
                 await refresh()
             } catch {
                 guard stamp==generation else { return }

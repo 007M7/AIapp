@@ -75,7 +75,7 @@ import CryptoKit
         guard let self, self.audioPlayer === player else { return }
         self.playingKey="";self.playingState="idle";self.publish()
     }
-    private struct PendingText: Codable { let text: String; let created: Date }
+    private struct PendingText: Codable { let text: String; let created: Date; var operationID: String? = nil }
     private var pendingText: PendingText?
     private var pendingFile: URL? {
         guard let root = try? FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true) else { return nil }
@@ -124,7 +124,11 @@ import CryptoKit
         let encoder = JSONEncoder()
         guard let turns = try? encoder.encode(history.cache.turns),
               let rows = try? JSONSerialization.jsonObject(with: turns) else { return }
-        if let pending = pendingText, history.cache.turns.contains(where: { $0.source == "phone_text" && $0.userText == pending.text && $0.created >= pending.created.timeIntervalSince1970 - 5 }) {
+        if let pending = pendingText, history.cache.turns.contains(where: { turn in
+            PendingTextReceipt.matches(turn, text: pending.text, created: pending.created,
+                operationID: pending.operationID,
+                currentOperationID: device.operation?.kind == "text" ? device.operation?.id : nil)
+        }) {
             clearPending(); webView?.evaluateJavaScript("window.pilotTextAccepted && window.pilotTextAccepted()")
         }
         let message = !microphone.message.isEmpty ? microphone.message : (!device.message.isEmpty ? device.message : nearby.message)
@@ -178,7 +182,13 @@ import CryptoKit
             }
             Task {
                 guard await device.prepareVoice() else { publish(); return }
-                device.sendText(text); publish()
+                device.sendText(text) { [weak self] operation in
+                    guard let self, var pending = self.pendingText, pending.text == text else { return }
+                    pending.operationID = operation.id
+                    if !self.savePending(pending) { self.webView?.evaluateJavaScript("window.pilotLocalSaveFailed && window.pilotLocalSaveFailed()", completionHandler: nil) }
+                    self.publish()
+                }
+                publish()
             }
         default: break
         }

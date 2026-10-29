@@ -25,6 +25,15 @@ struct LabChatTurn: Codable, Identifiable {
         }
     }
 }
+enum PendingTextReceipt {
+    static func matches(_ turn: LabChatTurn, text: String, created: Date, operationID: String?, currentOperationID: String?) -> Bool {
+        guard turn.source == "phone_text", turn.userText == text else { return false }
+        if let operationID { return turn.operationId == operationID }
+        if let currentOperationID, turn.operationId == currentOperationID { return true }
+        // Legacy pending messages lack an operation ID; constrain the time window.
+        return turn.created >= created.timeIntervalSince1970 - 5 && turn.created <= created.timeIntervalSince1970 + 120
+    }
+}
 struct LabChatPage: Decodable {
     let turns: [LabChatTurn]
     let revision: Int

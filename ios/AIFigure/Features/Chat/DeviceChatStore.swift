@@ -12,7 +12,7 @@ import Combine
         stop()
         let expected=device.chatScope
         scope=device.status?.deviceId == nil ? UserDefaults.standard.string(forKey:"chat.last-scope") ?? expected : expected
-        guard scope.hasPrefix(device.address+"|") else { scope=expected;return }
+        if !scope.hasPrefix(device.address+"|") { scope=expected;cache=ChatHistoryCache() }
         do { cache=try ChatHistoryCache.load(scope:scope) } catch { note="本机记录读取失败，可重新同步" }
         let stamp=generation
         polling=Task {

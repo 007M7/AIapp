@@ -40,6 +40,7 @@ final class NearbyDeviceStore: ObservableObject {
     private var action: Task<Void, Never>?
     private var lastGateway = ""
     private var gatewayAt = Date.distantPast
+    private var reconnectTask: Task<Void, Never>?
     @Published private(set) var lastRead: Date?
     private var deviceID: UUID?
     func resume() {
@@ -109,7 +110,8 @@ final class NearbyDeviceStore: ObservableObject {
     func refresh() async {
         guard connected, !working else { return }
         working = true; defer { working = false }
-        do { try await readStatus() } catch { close(); message = error.localizedDescription }
+        do { try await readStatus() }
+        catch { recoverConnection("蓝牙状态中断，正在重新连接") }
     }
     private func readStatus() async throws {
         let value = try await exchange("status")
@@ -119,11 +121,13 @@ final class NearbyDeviceStore: ObservableObject {
         lastRead = Date()
         message = ""
         if current.wifi, current.ready, lastGateway != current.host || Date().timeIntervalSince(gatewayAt) > 15 {
-            let code = try await exchange("gateway")
-            let data = try JSONSerialization.data(withJSONObject: ["type": "aifigure.device.v1", "server": code["server"] as? String ?? "", "credential": code["credential"] as? String ?? ""])
-            gateway = try DeviceConnectionCode.parse(String(decoding: data, as: UTF8.self))
-            lastGateway = current.host
             gatewayAt = Date()
+            let code = try await exchange("gateway")
+            do {
+                let data = try JSONSerialization.data(withJSONObject: ["type": "aifigure.device.v1", "server": code["server"] as? String ?? "", "credential": code["credential"] as? String ?? ""])
+                gateway = try DeviceConnectionCode.parse(String(decoding: data, as: UTF8.self))
+                lastGateway = current.host
+            } catch { message = "蓝牙已连接，互动服务暂不可用" }
         }
     }
     func command(_ op: String, fields: [String: Any] = [:]) {
@@ -159,9 +163,20 @@ final class NearbyDeviceStore: ObservableObject {
             }
         }
     }
-    private func lostConnection() { close(); message = "蓝牙已断开，请靠近手办后重新连接" }
+    private func lostConnection() { recoverConnection("蓝牙已断开，正在重新连接") }
+    private func recoverConnection(_ text: String) {
+        let id = deviceID, previousName = name
+        close(); message = text
+        guard let id else { return }
+        reconnectTask = Task { [weak self] in
+            do { try await Task.sleep(nanoseconds: 2_000_000_000) } catch { return }
+            guard let self, !Task.isCancelled else { return }
+            self.reconnectTask = nil
+            self.connect(ProtocommBLE.Found(id: id, name: previousName, rssi: 0))
+        }
+    }
     func close() {
-        generation = UUID(); polling?.cancel(); polling = nil; action?.cancel(); action = nil
+        generation = UUID(); reconnectTask?.cancel(); reconnectTask = nil; polling?.cancel(); polling = nil; action?.cancel(); action = nil
         ble.close(); session = nil; key = ""; connected = false; connecting = false; scanning = false; working = false
         status = nil; gateway = nil; lastGateway = ""; deviceID = nil; lastRead = nil; gatewayAt = .distantPast
     }
